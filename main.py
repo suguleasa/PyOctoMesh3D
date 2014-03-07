@@ -31,8 +31,8 @@ class Node():
         self.ishomog = 1
 #        self.tlist = [] # contains the numbering of the nodes in the element
 #        self.tpix = []       
-#        self.nsew = [0,0,0,0]
-#        self.hn = [Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1)]
+        self.nsew = [0,0,0,0]
+        self.hn = [Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1)]
         
         self.cube = cube 
         self.index = '-1'
