@@ -352,5 +352,64 @@ def draw_plane_connections(image, l1,l2,l3,l4, L1,L2,L3,L4):
     if l3 == 0 and l4 == 0:
         draw_line(image,L3,L4)
     
+def set_interval(imSize,level):
+    my_arr = [0,imSize-1]
+    
+    for i in range(0,level):
+        mdpt = numpy.zeros((len(my_arr)-1,1))
+        new_arr = numpy.zeros(( len(my_arr) + len(mdpt), 1  ))
+        for j in range(0,len(my_arr)-1):
+            mdpt[j] = (my_arr[j] + my_arr[j+1] ) // 2
+
+        for k in range(0,len(new_arr)):
+            
+            if  k % 2 == 0:
+                new_arr[k] = my_arr[k/2]
+            else:
+            
+                new_arr[k] = mdpt[k/2]
+        my_arr = new_arr
+        
+    return my_arr 
+
+  
+def convert_to_base_8(n):
+    # converting number n in base 10 to base 4
+
+    result = []
+    (n,remainder) = divmod(n,8)
+    result.append(str(remainder))
+    while n:
+        (n,remainder) = divmod(n,8)
+        result.append(str(remainder))
+        
+    result.reverse()
+    
+    return ''.join(result)
+
+def tomorton(x,y,z):
+# adapted to include the 3D case, from:
+#  http://www.thejach.com/view/id/207
+  x = bin(x)[2:]
+  lx = len(x)
+  
+  y = bin(y)[2:]
+  ly = len(y)
+  
+  z = bin(z)[2:]
+  lz = len(z)
+  
+  L = max(lx, ly, lz)
+  m = 0
+  
+  for j in xrange(1, L+1):
+    # note: ith bit of x requires x[lx - i] since our bin numbers are big endian
+    xi = int(x[lx-j]) if j-1 < lx else 0
+    yi = int(y[ly-j]) if j-1 < ly else 0
+    zi = int(z[lz-j]) if j-1 < lz else 0
+  
+    m += 2**(3*j)*xi + 2**(3*j+1)*yi + 2**(3*j+2)*zi
+  
+  return m/8
     
     

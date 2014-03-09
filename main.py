@@ -62,10 +62,13 @@ class Node():
         self.outImage = outImage
         self.inImage = inImage
         
-#        Lx = set_interval(imageSize[0],self.depth)
-#        Ly = set_interval(imageSize[1],self.depth)
-#        self.i = list(Lx).index(p1.x)
-#        self.j = list(Ly).index(p1.y)
+        Lx = set_interval(imageSize[0],self.depth)
+        Ly = set_interval(imageSize[1],self.depth)
+        Lz = set_interval(imageSize[2],self.depth)
+
+        self.i = list(Lx).index(p1.x)
+        self.j = list(Ly).index(p1.y)
+        self.k = list(Lz).index(p1.z)
         
     def subdivide(self): 
     # this method subdivides a node recursively if some
@@ -116,10 +119,10 @@ class Node():
             if span == True:
 #                print 'criterion is TRUE'
                 self.children[n] = self.getinstance(cubes[n], self.inImage, self.outImage,imageSize)
-#                self.children[n].index = str(convert_to_base_4(tomorton(self.children[n].i, self.children[n].j)))
-#                diff_level = abs(len(self.children[n].index) - self.children[n].depth)
-#                if diff_level != 0:
-#                    self.children[n].index = '0'*diff_level + self.children[n].index
+                self.children[n].index = str(convert_to_base_8(tomorton(self.children[n].i, self.children[n].j)))
+                diff_level = abs(len(self.children[n].index) - self.children[n].depth)
+                if diff_level != 0:
+                    self.children[n].index = '0'*diff_level + self.children[n].index
                 
                 p1r,p2r,p3r,p4r,p5r,p6r,p7r,p8r = cubes[n]
                 L1 = linear_search(self.inImage,p1r,p2r)
@@ -249,10 +252,10 @@ class Node():
             if span == True:
 #                print 'criterion is TRUE'
                 self.children[n] = self.getinstance(cubes[n], self.inImage, self.outImage,imageSize)
-#                self.children[n].index = str(convert_to_base_4(tomorton(self.children[n].i, self.children[n].j)))
-#                diff_level = abs(len(self.children[n].index) - self.children[n].depth)
-#                if diff_level != 0:
-#                    self.children[n].index = '0'*diff_level + self.children[n].index
+                self.children[n].index = str(convert_to_base_4(tomorton(self.children[n].i, self.children[n].j)))
+                diff_level = abs(len(self.children[n].index) - self.children[n].depth)
+                if diff_level != 0:
+                    self.children[n].index = '0'*diff_level + self.children[n].index
                 
                 p1r,p2r,p3r,p4r,p5r,p6r,p7r,p8r = cubes[n]
                 L1 = linear_search(self.inImage,p1r,p2r)
@@ -766,8 +769,8 @@ if __name__ == "__main__":
     # orig_mesh.vtk is two_channels.dcm converted to VTK format
     # empty_mesh.vtk contains a mesh on an empty set
     print "Reading image in..."
-    inputImage = sitk.ReadImage("dataset/channels_512x256.dcm")
-    outputImage = sitk.ReadImage("dataset/channels_512x256.dcm")
+    inputImage = sitk.ReadImage("dataset/channels_512.dcm")
+    outputImage = sitk.ReadImage("dataset/channels_512.dcm")
 #    outputImage = sitk.ReadImage("dataset/img.vtk")
 #    inputImage = sitk.ReadImage((sys.argv[1]));
 #    outputImage = sitk.ReadImage((sys.argv[1]));
