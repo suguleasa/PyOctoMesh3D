@@ -5,13 +5,120 @@ from math import sqrt, floor, copysign
 from numpy import *
 import scipy
 import numpy
+from bresenham import *
+
+D = {}
+D['0'] = {
+          'D': {'Quadrant':'2', 'Direction':'H'},
+          'U': {'Quadrant':'2', 'Direction':'U'},          
+          'R': {'Quadrant':'1', 'Direction':'H'},
+          'L': {'Quadrant':'1', 'Direction':'L'},
+          
+          'B': {'Quadrant':'4', 'Direction':'H'},
+          'F': {'Quadrant':'4', 'Direction':'F'}
+          
+          }
+
+D['1'] = {
+          'D': {'Quadrant':'3', 'Direction':'H'},
+          'U': {'Quadrant':'3', 'Direction':'U'},          
+          'R': {'Quadrant':'0', 'Direction':'R'},
+          'L': {'Quadrant':'0', 'Direction':'H'},
+                    
+          'B': {'Quadrant':'5', 'Direction':'H'},
+          'F': {'Quadrant':'5', 'Direction':'F'}
+
+          }
+
+D['2'] = {
+          'D': {'Quadrant':'0', 'Direction':'D'},
+          'U': {'Quadrant':'0', 'Direction':'H'},
+          'R': {'Quadrant':'3', 'Direction':'H'},
+          'L': {'Quadrant':'3', 'Direction':'L'},
+          
+          'B': {'Quadrant':'6', 'Direction':'H'},
+          'F': {'Quadrant':'6', 'Direction':'F'}                    
+
+          }
+
+D['3'] = {
+          'D': {'Quadrant':'1', 'Direction':'D'},
+          'U': {'Quadrant':'1', 'Direction':'H'},
+          'R': {'Quadrant':'2', 'Direction':'R'},
+          'L': {'Quadrant':'2', 'Direction':'H'},
+
+          'B': {'Quadrant':'7', 'Direction':'H'},
+          'F': {'Quadrant':'7', 'Direction':'F'}        
+                    
+          }
+
+D['4'] = {
+          'D': {'Quadrant':'6', 'Direction':'H'},
+          'U': {'Quadrant':'6', 'Direction':'U'},
+          'R': {'Quadrant':'5', 'Direction':'H'},
+          'L': {'Quadrant':'5', 'Direction':'L'},
+                    
+          'B': {'Quadrant':'0', 'Direction':'B'},
+          'F': {'Quadrant':'0', 'Direction':'H'}        
+                    
+          }
+
+D['5'] = {
+          'D': {'Quadrant':'7', 'Direction':'H'},
+          'U': {'Quadrant':'7', 'Direction':'U'},
+          'R': {'Quadrant':'4', 'Direction':'R'},
+          'L': {'Quadrant':'4', 'Direction':'H'},
+                    
+          'B': {'Quadrant':'1', 'Direction':'B'},
+          'F': {'Quadrant':'1', 'Direction':'H'}        
+                    
+          }
+
+D['6'] = {
+          'D': {'Quadrant':'4', 'Direction':'D'},
+          'U': {'Quadrant':'4', 'Direction':'H'},
+          'R': {'Quadrant':'7', 'Direction':'H'},
+          'L': {'Quadrant':'7', 'Direction':'L'},
+          
+          'B': {'Quadrant':'2', 'Direction':'B'},
+          'F': {'Quadrant':'2', 'Direction':'H'}        
+                    
+          }
+
+D['7'] = {
+          'D': {'Quadrant':'5', 'Direction':'D'},
+          'U': {'Quadrant':'5', 'Direction':'H'},
+          'R': {'Quadrant':'6', 'Direction':'R'},
+          'L': {'Quadrant':'6', 'Direction':'H'},
+          
+          'B': {'Quadrant':'3', 'Direction':'B'},
+          'H': {'Quadrant':'3', 'Direction':'H'}        
+                    
+          }
 
 class Coordinate(object):
     def __init__(self,x=-1,y=-1,z=-1):
         self.x = x
         self.y = y
         self.z = z
-        
+        self.all = [x,y,z]
+
+            
+def search_in(my_list,pi,pj,inImage):
+    Lk_list1 = [[x[0],x[1]] in [[pi,pj],] for x in my_list] #[True, False, False, True, etc]
+    Lk_list2 = [[x[0],x[1]] in [[pj,pi],] for x in my_list] #[True, False, False, True, etc]
+    if True in Lk_list1: #if we found it in the list:
+        Lk_ind = Lk_list1.index(True)
+        Lk = my_list[Lk_ind][2]
+    else: 
+        if True in Lk_list2:
+            Lk_ind = Lk_list2.index(True)
+            Lk = my_list[Lk_ind][2]
+        else:
+            Lk = linear_search(inImage,pi,pj)
+            my_list.append([pi,pj,Lk])
+    return Lk
+                            
 def find_mid_point(p1, p2):
     xMid = int( (p1.x + p2.x)/2.0 )
     yMid = int( (p1.y + p2.y)/2.0 )
@@ -144,7 +251,9 @@ def bresenham_line3d(p1,p2):
 ## This function draws a line between two points in space: pinit and pend
 def draw_line(image,pinit,pend):
 
-    [X,Y,Z] = bresenham_line3d(pinit,pend)
+#    [X,Y,Z] = bresenham_line3d(pinit,pend)
+    list_bnd = bND([pinit.x,pinit.y, pinit.z], [pend.x, pend.y, pend.z])
+    [X,Y,Z] = map(list,map(None,*list_bnd))
     for i in range(0,len(X)):
         image.SetPixel( int(X[i]), int(Y[i]), int(Z[i]), VAL)
  
@@ -331,25 +440,25 @@ def draw_plane_connections(image, l1,l2,l3,l4, L1,L2,L3,L4):
 #    print l1, l2, l3 ,l4
 #    print L1, L2, L3, L4
     
-    if l1 == 0 and l2 == 0:
+    if l1 == 0 and l2 == 0 and l3 == 1 and l4 == 1:
         draw_line(image,L1,L2)
     if l1 == 0 and l3 == 0:
         draw_line(image,L1,L3)
-    if l1 == 0 and l4 == 0:
+    if l1 == 0 and l4 == 0 and l2 == 1 and l3 == 1:
 #        print L1, len(L1)
 #        print L4, len(L4)
 #        print L1.x, L1.y, L1.z
 #        print L4.x, L4.y, L4.z
         draw_line(image,L1,L4)
-    if l2 == 0 and l3 == 0:
+    if l2 == 0 and l3 == 0 and l1 == 1 and l4 == 1:
         draw_line(image,L2,L3)
-    if l2 == 0 and l4 == 0:
+    if l2 == 0 and l4 == 0 and l1 == 1 and l3 == 1:
 #        print L2, len(L2)
 #        print L4
 #        print L2.x, L2.y, L2.z
 #        print L4.x, L4.y, L4.z       
         draw_line(image,L2,L4)
-    if l3 == 0 and l4 == 0:
+    if l3 == 0 and l4 == 0 and l1 == 1 and l2 == 1:
         draw_line(image,L3,L4)
     
 def set_interval(imSize,level):
@@ -411,5 +520,157 @@ def tomorton(x,y,z):
     m += 2**(3*j)*xi + 2**(3*j+1)*yi + 2**(3*j+2)*zi
   
   return m/8
+
+def find_neighbor(index,direction):
+    # finds neighbor given one direction letter
+    loc = str(index)
+    llist_str = list(loc)
+    for i in range(len(loc)-1,-1,-1):
+        
+        new_quadrant =  D[str(loc[i])][direction]['Quadrant']
+        new_direction = D[str(loc[i])][direction]['Direction']
+        if new_direction != 'H':
+            direction = new_direction
+            llist_str[i] = str(new_quadrant)
+        else:
+            llist_str[i] = str(new_quadrant)
+            return str("".join(llist_str))
+
+    return str("".join(llist_str))
+  
+def find_neighbor_of(index, direction):
+    if len(direction) == 1:
+        # we only do one lookup pass through the table
+        return find_neighbor(index,direction)
+    if len(direction) == 2:
+        # we do two passes through the table
+        pass1 = find_neighbor(index,direction[0])
+        pass2 = find_neighbor(pass1,direction[1])
+        return pass2
+    if len(diretion) == 3:
+        # we do three passes through the table
+        pass1 = find_neighbor(index,direction[0])
+        pass2 = find_neighbor(pass1,direction[1])
+        pass3 = find_neighbor(index,direction[3])
+        return pass3
+    
+def ghost_nodes_enrichment_nodes(tree, root, masterNode):
+
+        p1,p2,p3,p4 = root.rect
+            
+        up_has_children = False
+        down_has_children = False
+        left_has_children = False
+        right_has_children = False
+        back_has_children = False
+        front_has_children = False
+        
+        
+        # if root has no children look at his neighbors
+        # if all of them do have children, 
+        # root needs to be subdivided
+        if root.has_children == False:
+            
+            west_neigh_index = str(find_neighbor_of(root.index,'L'))    
+            # checking to see if the west neighbor exists or is a ghost
+            if it_exists(west_neigh_index, masterNode):
+                west_neighbor = get_node_of_neighbor(root, root.index, west_neigh_index)
+                if west_neighbor.has_children == True:
+                    west_has_children = True
+                    
+            east_neigh_index = str(find_neighbor_of(root.index,'R'))    
+            # checking to see if the west neighbor exists or is a ghost
+            if it_exists(east_neigh_index, masterNode):
+                east_neighbor = get_node_of_neighbor(root, root.index, east_neigh_index)
+                if east_neighbor.has_children == True:
+                    east_has_children = True
+
+            south_neigh_index = str(find_neighbor_of(root.index,'D'))    
+            # checking to see if the west neighbor exists or is a ghost
+            if it_exists(south_neigh_index, masterNode):
+                south_neighbor = get_node_of_neighbor(root, root.index, south_neigh_index)
+                if south_neighbor.has_children == True:
+                    south_has_children = True
+
+            north_neigh_index = str(find_neighbor_of(root.index,'U'))    
+            # checking to see if the west neighbor exists or is a ghost
+            if it_exists(north_neigh_index, masterNode):
+                north_neighbor = get_node_of_neighbor(root, root.index, north_neigh_index)
+                if north_neighbor.has_children == True:
+                    north_has_children = True
+                    
+            if (len(root.enrichNodes) > 0 and 
+                (west_has_children == True or east_has_children == True or
+                 south_has_children == True or north_has_children == True)):
+#                print root.index
+                root.divideOnce()      
+
+        if root.children[0] != None:
+            ghost_nodes_enrichment_nodes(tree,root.children[0],masterNode)
+        if root.children[1] != None:
+            ghost_nodes_enrichment_nodes(tree,root.children[1],masterNode)
+        if root.children[2] != None:
+            ghost_nodes_enrichment_nodes(tree,root.children[2],masterNode)
+        if root.children[3] != None:
+            ghost_nodes_enrichment_nodes(tree,root.children[3],masterNode)
+          
+def get_node_by_id(node,id):
+        # returns node, given index 
+        # index could be ['00101'], thus it'a list
+        
+        index = id[0]
+        ll = len(index)
+
+        p = node
+        for i in range(0,ll):
+            p = p.children[int(index[i])]
+            
+        return p  
+    
+def get_list_of_nodes(tree, root, masterNode,llist):
+
+        if root.has_children == False:
+            llist.append([root.index]) 
+            
+        if root.children[0] != None:
+            get_list_of_nodes(tree,root.children[0],masterNode,llist)
+        if root.children[1] != None:
+            get_list_of_nodes(tree,root.children[1],masterNode,llist)
+        if root.children[2] != None:
+            get_list_of_nodes(tree,root.children[2],masterNode,llist)
+        if root.children[3] != None:
+            get_list_of_nodes(tree,root.children[3],masterNode,llist)
+        if root.children[4] != None:
+            get_list_of_nodes(tree,root.children[4],masterNode,llist)
+        if root.children[5] != None:
+            get_list_of_nodes(tree,root.children[5],masterNode,llist)
+        if root.children[6] != None:
+            get_list_of_nodes(tree,root.children[6],masterNode,llist)
+        if root.children[7] != None:
+            get_list_of_nodes(tree,root.children[7],masterNode,llist)
+            
+        return llist
     
     
+    
+def draw_interface(image, tree_list, masterNode):
+    
+    n = len(tree_list)
+
+    # for each node in the tree:
+    for i in range(0,n):
+        print ' tree list', tree_list[i]
+        root_i = get_node_by_id(masterNode,tree_list[i])    
+        if len(root_i.enrichNodes) > 1:
+#            draw_line(image,root_i.enrichNodes[0], root_i.enrichNodes[1])
+            print 'root_i.enrichNodes', root_i.enrichNodes[0]
+#            draw_plane_connections(image, l1,l2,l3,l4, L1,L2,L3,L4) # 1234
+#            draw_plane_connections(image, l1,l2,l6,l5, L1,L2,L6,L5) # 1265
+#            draw_plane_connections(image, l3,l2,l6,l7, L3,L2,L6,L7) # 3267
+#            draw_plane_connections(image, l4,l3,l7,l8, L4,L3,L7,L8) # 4378
+#            draw_plane_connections(image, l4,l1,l5,l8, L4,L1,L5,L8) # 4158
+#            draw_plane_connections(image, l5,l6,l7,l8, L5,L6,L7,L8) # 5678
+            
+            
+            
+            
