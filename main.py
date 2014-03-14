@@ -918,8 +918,8 @@ if __name__ == "__main__":
     print totalNumberOfNodes
     masterNode = rootNode
  
-    rt = get_node_by_id(rootNode,['301'])
-    rt2 = find_neighbor_of(rt.index,'R')
+    rt = get_node_by_id(rootNode,['132'])
+    rt2 = find_neighbor_of(rt.index,'F')
     print rt.index, rt2
 
     rt = get_node_by_id(rootNode,['301'])

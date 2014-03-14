@@ -551,7 +551,7 @@ def find_neighbor_of(index, direction):
         # we do three passes through the table
         pass1 = find_neighbor(index,direction[0])
         pass2 = find_neighbor(pass1,direction[1])
-        pass3 = find_neighbor(index,direction[2])
+        pass3 = find_neighbor(pass2,direction[2])
         return pass3
     
 def ghost_nodes_enrichment_nodes(tree, root, masterNode):
