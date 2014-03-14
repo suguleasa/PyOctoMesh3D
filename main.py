@@ -920,16 +920,16 @@ if __name__ == "__main__":
  
     rt = get_node_by_id(rootNode,['301'])
     rt2 = find_neighbor_of(rt.index,'R')
-    print rt.index, rt2.index
+    print rt.index, rt2
 
     rt = get_node_by_id(rootNode,['301'])
     rt2 = find_neighbor_of(rt.index,'RU')
-    print rt.index, rt2.index
+    print rt.index, rt2
 #
 
     rt = get_node_by_id(rootNode,['301'])
     rt2 = find_neighbor_of(rt.index,'RUF')
-    print rt.index, rt2.index
+    print rt.index, rt2
 #
 
 #    draw_interface(outputImage, tree_list_of_nodes, masterNode)

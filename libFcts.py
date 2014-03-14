@@ -547,7 +547,7 @@ def find_neighbor_of(index, direction):
         pass1 = find_neighbor(index,direction[0])
         pass2 = find_neighbor(pass1,direction[1])
         return pass2
-    if len(diretion) == 3:
+    if len(direction) == 3:
         # we do three passes through the table
         pass1 = find_neighbor(index,direction[0])
         pass2 = find_neighbor(pass1,direction[1])
