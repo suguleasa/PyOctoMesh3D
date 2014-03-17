@@ -729,3 +729,86 @@ def ghost_nodes_enrichment_nodes(tree, root, masterNode):
         if root.children[7] != None:
             ghost_nodes_enrichment_nodes(tree,root.children[7],masterNode)
             
+
+def neigh_has_grandchildren(root, masterNode, direction, whichChildren): 
+    
+    neigh_index = str(find_neighbor_of(root.index,direction))    
+    if it_exists(neigh_index, masterNode):
+        node_neighbor = get_node_of_neighbor(root, root.index, neigh_index)
+        if node_neighbor.has_children == True:
+            has_kids = False
+            for i in range(0, len(whichChildren)):
+                if node_neighbor.children[whichChildren[i]].has_children:
+                    i_has_kids = True
+                else:
+                    i_has_kids = False
+                has_kids = has_kids or i_has_kids
+            return has_kids
+    return False
+            
+def tree_balance(tree, root,masterNode):
+   
+        p1,p2,p3,p4,p5,p6,p7,p8 = root.cube
+            
+        # if the root node has children, let's look if the neighbors do, 
+        # and if they do, do their children have children?
+        # 1 - irregularity rule            
+        if root.has_children == False:
+            if neigh_has_grandchildren(root, masterNode, 'U', [4,5,6,7]) == True:
+                    root.divideOnce()
+            if neigh_has_grandchildren(root, masterNode, 'D', [0,1,2,3]) == True:
+                    root.divideOnce()
+            if neigh_has_grandchildren(root, masterNode, 'F', [0,1,4,5]) == True:
+                    root.divideOnce()                                            
+            if neigh_has_grandchildren(root, masterNode, 'B', [2,3,6,7]) == True:
+                    root.divideOnce()
+            if neigh_has_grandchildren(root, masterNode, 'L', [1,3,5,7]) == True:
+                    root.divideOnce()
+            if neigh_has_grandchildren(root, masterNode, 'R', [0,2,4,6]) == True:
+                    root.divideOnce()
+                    
+            if neigh_has_grandchildren(root, masterNode, 'UB', [6,7]) == True:
+                    root.divideOnce()
+            if neigh_has_grandchildren(root, masterNode, 'UF', [4,5]) == True:
+                    root.divideOnce()                                                            
+            if neigh_has_grandchildren(root, masterNode, 'LU', [5,7]) == True:
+                    root.divideOnce()
+            if neigh_has_grandchildren(root, masterNode, 'RU', [4,6]) == True:
+                    root.divideOnce()
+                    
+            if neigh_has_grandchildren(root, masterNode, 'DB', [2,3]) == True:
+                    root.divideOnce()
+            if neigh_has_grandchildren(root, masterNode, 'DF', [0,1]) == True:
+                    root.divideOnce()                                                            
+            if neigh_has_grandchildren(root, masterNode, 'LD', [1,3]) == True:
+                    root.divideOnce()
+            if neigh_has_grandchildren(root, masterNode, 'RD', [0,2]) == True:
+                    root.divideOnce()
+                    
+                    
+            if neigh_has_grandchildren(root, masterNode, 'LF', [1,5]) == True:
+                    root.divideOnce()
+            if neigh_has_grandchildren(root, masterNode, 'RF', [0,4]) == True:
+                    root.divideOnce()                                                            
+            if neigh_has_grandchildren(root, masterNode, 'LB', [3,7]) == True:
+                    root.divideOnce()
+            if neigh_has_grandchildren(root, masterNode, 'RB', [2,6]) == True:
+                    root.divideOnce()
+                                                                                                                        
+        if root.children[0] != None:
+            tree_balance(tree,root.children[0],masterNode)
+        if root.children[1] != None:
+            tree_balance(tree,root.children[1],masterNode)
+        if root.children[2] != None:
+            tree_balance(tree,root.children[2],masterNode)
+        if root.children[3] != None:
+            tree_balance(tree,root.children[3],masterNode)
+        if root.children[4] != None:
+            tree_balance(tree,root.children[4],masterNode)
+        if root.children[5] != None:
+            tree_balance(tree,root.children[5],masterNode)
+        if root.children[6] != None:
+            tree_balance(tree,root.children[6],masterNode)
+        if root.children[7] != None:
+            tree_balance(tree,root.children[7],masterNode)
+            

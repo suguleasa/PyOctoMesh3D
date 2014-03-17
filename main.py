@@ -968,10 +968,33 @@ if __name__ == "__main__":
         ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
         newTotalNumberOfNodes = tree.count_nodes(rootNode)
         
-        print newTotalNumberOfNodes
     masterNode = rootNode
     
+     
+#    p1,p2,p3,p4,p5,p6,p7,p8 = rootNode.children[6].cube
+#    print p1.x, p1.y, p1.z
+#    print p2.x, p2.y, p2.z
+#    print p4.x, p4.y, p4.z
+#    print p5.x, p5.y, p5.z
+
+      
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    newTotalNumberOfNodes = -1
+    print totalNumberOfNodes
+         
+    while totalNumberOfNodes != newTotalNumberOfNodes:
+        print 'Rebalancing tree by multiple passes '
+        masterNode = rootNode
+        totalNumberOfNodes = newTotalNumberOfNodes
+        tree_balance(tree,rootNode,masterNode)
+        newTotalNumberOfNodes = tree.count_nodes(rootNode)
  
+    
+    masterNode = rootNode
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    newTotalNumberOfNodes = -1
+    
+    print totalNumberOfNodes
 #    rt = get_node_by_id(rootNode,['132'])
 #    rt2 = find_neighbor_of(rt.index,'F')
 #    print rt.index, rt2
