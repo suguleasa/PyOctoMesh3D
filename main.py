@@ -255,12 +255,12 @@ class Node():
         cubes.append((cMid, cMid3267, cMid37, cMid4378, cMid5678, cMid67, p7, cMid87)) # SE bottom child
         
         for n in range(len(cubes)):
-            span = self.division_criterion(cubes[n], self.inImage, self.outImage)
+            span = self.division_criterionOnce(cubes[n], self.inImage, self.outImage)
 
             if span == True:
 #                print 'criterion is TRUE'
                 self.children[n] = self.getinstance(cubes[n], self.inImage, self.outImage,imageSize)
-                self.children[n].index = str(convert_to_base_4(tomorton(self.children[n].i, self.children[n].j, self.children[n].k)))
+                self.children[n].index = str(convert_to_base_8(tomorton(self.children[n].i, self.children[n].j, self.children[n].k)))
                 diff_level = abs(len(self.children[n].index) - self.children[n].depth)
                 if diff_level != 0:
                     self.children[n].index = '0'*diff_level + self.children[n].index
@@ -798,6 +798,66 @@ class COctoTree(OctoTree):
     def __init__(self,rootnode):
         OctoTree.__init__(self, rootnode)
     
+def draw_interface(outImage, inImage, tree_list, masterNode):
+    
+    n = len(tree_list)
+
+    # for each node in the tree:
+    for i in range(0,n):
+#        print ' tree list', tree_list[i]
+        root_i = get_node_by_id(masterNode,tree_list[i])    
+        if len(root_i.enrichNodes) > 1:
+            p1,p2,p3,p4,p5,p6,p7,p8 = root_i.cube
+            l1 = ends_in_same_bin(inImage,p1,p2)
+            l2 = ends_in_same_bin(inImage,p2,p3)
+            l3 = ends_in_same_bin(inImage,p4,p3)
+            l4 = ends_in_same_bin(inImage,p1,p4)
+            l5 = ends_in_same_bin(inImage,p5,p6)
+            l6 = ends_in_same_bin(inImage,p6,p7)
+            l7 = ends_in_same_bin(inImage,p8,p7)
+            l8 = ends_in_same_bin(inImage,p5,p8)
+            l9 = ends_in_same_bin(inImage,p1,p5)
+            l10 = ends_in_same_bin(inImage,p2,p6)
+            l11 = ends_in_same_bin(inImage,p3,p7)
+            l12 = ends_in_same_bin(inImage,p4,p8)
+        
+            L1 = search_in(LIST,p1,p2,inImage)
+            L2 = search_in(LIST,p2,p3,inImage)
+            L3 = search_in(LIST,p4,p3,inImage)
+            L4 = search_in(LIST,p1,p4,inImage)
+            
+            L5 = search_in(LIST,p5,p6,inImage)
+            L6 = search_in(LIST,p6,p7,inImage)
+            L7 = search_in(LIST,p8,p7,inImage)
+            L8 = search_in(LIST,p5,p8,inImage)
+            
+            L9 = search_in(LIST,p1,p5,inImage)
+            L10 = search_in(LIST,p2,p6,inImage)
+            L11 = search_in(LIST,p3,p7,inImage)
+            L12 = search_in(LIST,p4,p8,inImage)
+            
+#            print len(L1)
+#            L1 = L1[0]
+#            L2 = L2[0]
+#            L3 = L3[0]
+#            L4 = L4[0]
+#            L5 = L5[0]
+#            L6 = L6[0]
+#            L7 = L7[0]
+#            L8 = L8[0]
+#            L9 = L9[0]
+#            L10 = L10[0]
+#            L11 = L11[0]
+#            L12 = L12[0]
+#            draw_line(image,root_i.enrichNodes[0], root_i.enrichNodes[1])
+#            print 'root_i.enrichNodes', root_i.enrichNodes[0]
+            draw_plane_connections(outImage, l1,l2,l3,l4, L1,L2,L3,L4) # 1234
+            draw_plane_connections(outImage, l1,l2,l6,l5, L1,L2,L6,L5) # 1265
+            draw_plane_connections(outImage, l3,l2,l6,l7, L3,L2,L6,L7) # 3267
+            draw_plane_connections(outImage, l4,l3,l7,l8, L4,L3,L7,L8) # 4378
+            draw_plane_connections(outImage, l4,l1,l5,l8, L4,L1,L5,L8) # 4158
+            draw_plane_connections(outImage, l5,l6,l7,l8, L5,L6,L7,L8) # 5678
+
   
 def write_to_vtk(masterNode, llist):
     n = len(llist)
@@ -865,11 +925,11 @@ if __name__ == "__main__":
     # orig_mesh.vtk is two_channels.dcm converted to VTK format
     # empty_mesh.vtk contains a mesh on an empty set
     print "Reading image in..."
-    inputImage = sitk.ReadImage("dataset/fibers_512.dcm")
-    outputImage = sitk.ReadImage("dataset/fibers_512.dcm")
-#    outputImage = sitk.ReadImage("dataset/img.vtk")
-#    inputImage = sitk.ReadImage((sys.argv[1]));
-#    outputImage = sitk.ReadImage((sys.argv[1]));
+#    inputImage = sitk.ReadImage("dataset/fibers_512.dcm")
+#    outputImage = sitk.ReadImage("dataset/fibers_512.dcm")
+    inputImage = sitk.ReadImage("dataset/channels_512.dcm")
+    outputImage = sitk.ReadImage("dataset/channels_512.dcm")
+
 
 #    sitk.WriteImage(inputImage,"dataset/orig_mesh.vtk");
     
@@ -877,21 +937,7 @@ if __name__ == "__main__":
     
     imageSize = inputImage.GetSize()
     print "Image size:", imageSize
- 
-#    dim = (imageSize[1], imageSize[2], imageSize[0])
-#    origin = (0, 0, 0)
-#    spacing = (1.0, 1.0, 1.0)
-#    img = scipy.zeros(dim)*255
-#    
-#    
-#    img_sitk = sitk.GetImageFromArray(img)
-#    img_sitk.SetOrigin(origin)
-#    img_sitk.SetSpacing(spacing)
-#
-##    sitk.Show(img_sitk)
-#    sitk.WriteImage(img_sitk,"dataset/img.vtk")
-#    print img_sitk.GetSize()
-#    print inputImage.GetSize()
+
      
     # setting the 4 corners coordinates
     p1 = Coordinate(0,0,0)
@@ -910,34 +956,41 @@ if __name__ == "__main__":
     
     masterNode = CNode(None,cube,inputImage,outputImage,imageSize)
     
+#    masterNode = rootNode
+
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    print totalNumberOfNodes
+    newTotalNumberOfNodes = -1
+    while totalNumberOfNodes != newTotalNumberOfNodes:
+        print 'No enrichment nodes and hanging nodes in the same element '
+        totalNumberOfNodes = newTotalNumberOfNodes
+        masterNode = rootNode
+        ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
+        newTotalNumberOfNodes = tree.count_nodes(rootNode)
+        
+        print newTotalNumberOfNodes
+    masterNode = rootNode
+    
+ 
+#    rt = get_node_by_id(rootNode,['132'])
+#    rt2 = find_neighbor_of(rt.index,'F')
+#    print rt.index, rt2
+#
+#    rt = get_node_by_id(rootNode,['301'])
+#    rt2 = find_neighbor_of(rt.index,'RU')
+#    print rt.index, rt2
+##
+#
+#    rt = get_node_by_id(rootNode,['301'])
+#    rt2 = find_neighbor_of(rt.index,'RUF')
+#    print rt.index, rt2
+#
     llist = []
     tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
-    
-    totalNumberOfNodes = tree.count_nodes(rootNode)
-    newTotalNumberOfNodes = -1
-    print totalNumberOfNodes
     masterNode = rootNode
- 
-    rt = get_node_by_id(rootNode,['132'])
-    rt2 = find_neighbor_of(rt.index,'F')
-    print rt.index, rt2
 
-    rt = get_node_by_id(rootNode,['301'])
-    rt2 = find_neighbor_of(rt.index,'RU')
-    print rt.index, rt2
-#
-
-    rt = get_node_by_id(rootNode,['301'])
-    rt2 = find_neighbor_of(rt.index,'RUF')
-    print rt.index, rt2
-#
-
-#    draw_interface(outputImage, tree_list_of_nodes, masterNode)
+    draw_interface(outputImage, inputImage, tree_list_of_nodes, masterNode)
     
-#    writer = sitk.ImageFileWriter()
-#    writer.SetFileName ( nameOutputImage )
-#    writer.Execute ( outputImage )
-
     print 'writing the image out'
     sitk.WriteImage(outputImage,nameOutputImage);
    

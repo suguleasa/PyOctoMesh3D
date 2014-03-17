@@ -92,7 +92,7 @@ D['7'] = {
           'L': {'Quadrant':'6', 'Direction':'H'},
           
           'B': {'Quadrant':'3', 'Direction':'B'},
-          'H': {'Quadrant':'3', 'Direction':'H'}        
+          'F': {'Quadrant':'3', 'Direction':'H'}        
                     
           }
 
@@ -441,25 +441,27 @@ def draw_plane_connections(image, l1,l2,l3,l4, L1,L2,L3,L4):
 #    print L1, L2, L3, L4
     
     if l1 == 0 and l2 == 0 and l3 == 1 and l4 == 1:
-        draw_line(image,L1,L2)
+        draw_line(image,L1[0],L2[0])
     if l1 == 0 and l3 == 0:
-        draw_line(image,L1,L3)
+        draw_line(image,L1[0],L3[0])
     if l1 == 0 and l4 == 0 and l2 == 1 and l3 == 1:
 #        print L1, len(L1)
 #        print L4, len(L4)
 #        print L1.x, L1.y, L1.z
 #        print L4.x, L4.y, L4.z
-        draw_line(image,L1,L4)
+        draw_line(image,L1[0],L4[0])
     if l2 == 0 and l3 == 0 and l1 == 1 and l4 == 1:
-        draw_line(image,L2,L3)
+#        print L2.x, L2.y, L2.z
+#        print L3.x, L3.y, L3.z
+        draw_line(image,L2[0],L3[0])
     if l2 == 0 and l4 == 0 and l1 == 1 and l3 == 1:
 #        print L2, len(L2)
 #        print L4
 #        print L2.x, L2.y, L2.z
 #        print L4.x, L4.y, L4.z       
-        draw_line(image,L2,L4)
+        draw_line(image,L2[0],L4[0])
     if l3 == 0 and l4 == 0 and l1 == 1 and l2 == 1:
-        draw_line(image,L3,L4)
+        draw_line(image,L3[0],L4[0])
     
 def set_interval(imSize,level):
     my_arr = [0,imSize-1]
@@ -483,7 +485,7 @@ def set_interval(imSize,level):
 
   
 def convert_to_base_8(n):
-    # converting number n in base 10 to base 4
+    # converting number n in base 10 to base 8
 
     result = []
     (n,remainder) = divmod(n,8)
@@ -554,65 +556,6 @@ def find_neighbor_of(index, direction):
         pass3 = find_neighbor(pass2,direction[2])
         return pass3
     
-def ghost_nodes_enrichment_nodes(tree, root, masterNode):
-
-        p1,p2,p3,p4 = root.rect
-            
-        up_has_children = False
-        down_has_children = False
-        left_has_children = False
-        right_has_children = False
-        back_has_children = False
-        front_has_children = False
-        
-        
-        # if root has no children look at his neighbors
-        # if all of them do have children, 
-        # root needs to be subdivided
-        if root.has_children == False:
-            
-            west_neigh_index = str(find_neighbor_of(root.index,'L'))    
-            # checking to see if the west neighbor exists or is a ghost
-            if it_exists(west_neigh_index, masterNode):
-                west_neighbor = get_node_of_neighbor(root, root.index, west_neigh_index)
-                if west_neighbor.has_children == True:
-                    west_has_children = True
-                    
-            east_neigh_index = str(find_neighbor_of(root.index,'R'))    
-            # checking to see if the west neighbor exists or is a ghost
-            if it_exists(east_neigh_index, masterNode):
-                east_neighbor = get_node_of_neighbor(root, root.index, east_neigh_index)
-                if east_neighbor.has_children == True:
-                    east_has_children = True
-
-            south_neigh_index = str(find_neighbor_of(root.index,'D'))    
-            # checking to see if the west neighbor exists or is a ghost
-            if it_exists(south_neigh_index, masterNode):
-                south_neighbor = get_node_of_neighbor(root, root.index, south_neigh_index)
-                if south_neighbor.has_children == True:
-                    south_has_children = True
-
-            north_neigh_index = str(find_neighbor_of(root.index,'U'))    
-            # checking to see if the west neighbor exists or is a ghost
-            if it_exists(north_neigh_index, masterNode):
-                north_neighbor = get_node_of_neighbor(root, root.index, north_neigh_index)
-                if north_neighbor.has_children == True:
-                    north_has_children = True
-                    
-            if (len(root.enrichNodes) > 0 and 
-                (west_has_children == True or east_has_children == True or
-                 south_has_children == True or north_has_children == True)):
-#                print root.index
-                root.divideOnce()      
-
-        if root.children[0] != None:
-            ghost_nodes_enrichment_nodes(tree,root.children[0],masterNode)
-        if root.children[1] != None:
-            ghost_nodes_enrichment_nodes(tree,root.children[1],masterNode)
-        if root.children[2] != None:
-            ghost_nodes_enrichment_nodes(tree,root.children[2],masterNode)
-        if root.children[3] != None:
-            ghost_nodes_enrichment_nodes(tree,root.children[3],masterNode)
           
 def get_node_by_id(node,id):
         # returns node, given index 
@@ -653,24 +596,136 @@ def get_list_of_nodes(tree, root, masterNode,llist):
     
     
     
-def draw_interface(image, tree_list, masterNode):
-    
-    n = len(tree_list)
+def it_exists(index,masterNode):      
+    llen = len(index)
+    child = masterNode
+    for i in range(0,llen):
+        if child.children[int(index[i])].has_children == False:
+            return False
+        child = child.children[int(index[i])]
+    return True            
 
-    # for each node in the tree:
-    for i in range(0,n):
-        print ' tree list', tree_list[i]
-        root_i = get_node_by_id(masterNode,tree_list[i])    
-        if len(root_i.enrichNodes) > 1:
-#            draw_line(image,root_i.enrichNodes[0], root_i.enrichNodes[1])
-            print 'root_i.enrichNodes', root_i.enrichNodes[0]
-#            draw_plane_connections(image, l1,l2,l3,l4, L1,L2,L3,L4) # 1234
-#            draw_plane_connections(image, l1,l2,l6,l5, L1,L2,L6,L5) # 1265
-#            draw_plane_connections(image, l3,l2,l6,l7, L3,L2,L6,L7) # 3267
-#            draw_plane_connections(image, l4,l3,l7,l8, L4,L3,L7,L8) # 4378
-#            draw_plane_connections(image, l4,l1,l5,l8, L4,L1,L5,L8) # 4158
-#            draw_plane_connections(image, l5,l6,l7,l8, L5,L6,L7,L8) # 5678
+def get_node_of_neighbor(root,my_ind,neigh_ind):
+    
+    p = root
+    for i in range(0,len(my_ind)):
+        p = p.parent
+        
+    r = p
+    for j in range(0,len(neigh_ind)):
+        r = r.children[int(neigh_ind[j])]
+    return r
             
+def neigh_has_children(root, masterNode, direction): 
+    
+    neigh_index = str(find_neighbor_of(root.index,direction))    
+    # checking to see if the west neighbor exists or is a ghost
+    if it_exists(neigh_index, masterNode):
+        node_neighbor = get_node_of_neighbor(root, root.index, neigh_index)
+        if node_neighbor.has_children == True:
+            return True
+    return False
+           
+def ghost_nodes_enrichment_nodes(tree, root, masterNode):
+# this function triggers refinement when both an interface node and a hanging node
+# are present on an edge or face of an element
+        p1,p2,p3,p4,p5,p6,p7,p8 = root.cube
             
+        if p1.x>=192 and p2.x<=254 and p1.y >=384 and p4.y<=446 and p1.z >=0 and p5.z <=62:
+            print root.index
             
+        up_has_children = False
+        down_has_children = False
+        left_has_children = False
+        right_has_children = False
+        back_has_children = False
+        front_has_children = False
+        
+        rb_has_children = False
+        rf_has_children = False
+        lb_has_children = False
+        lf_has_children = False
+        
+        ub_has_children = False
+        uf_has_children = False
+        db_has_children = False
+        df_has_children = False
+        
+        ld_has_children = False
+        lu_has_children = False
+        ru_has_children = False
+        rd_has_children = False
+        
+        # if root has no children look at his neighbors
+        # if all of them do have children, 
+        # root needs to be subdivided
+        if root.has_children == False:
+            
+            up_has_children = neigh_has_children(root,masterNode,'U')
+            down_has_children = neigh_has_children(root,masterNode,'D')
+            left_has_children = neigh_has_children(root,masterNode,'L')
+            right_has_children = neigh_has_children(root,masterNode,'R')
+            back_has_children = neigh_has_children(root,masterNode,'B')
+            front_has_children = neigh_has_children(root,masterNode,'F')
+            
+            rb_has_children = neigh_has_children(root,masterNode,'RB')
+            rf_has_children = neigh_has_children(root,masterNode,'RF')
+            lb_has_children = neigh_has_children(root,masterNode,'LB')
+            lf_has_children = neigh_has_children(root,masterNode,'LF')
+            
+            ub_has_children = neigh_has_children(root,masterNode,'UB')
+            uf_has_children = neigh_has_children(root,masterNode,'UF')
+            db_has_children = neigh_has_children(root,masterNode,'DB')
+            df_has_children = neigh_has_children(root,masterNode,'DF')
+            
+            ld_has_children = neigh_has_children(root,masterNode,'LD')
+            lu_has_children = neigh_has_children(root,masterNode,'LU')
+            ru_has_children = neigh_has_children(root,masterNode,'RU')
+            rd_has_children = neigh_has_children(root,masterNode,'RD')
+                    
+            if p1.x>=192 and p2.x<=254 and p1.y >=384 and p4.y<=446 and p1.z >=0 and p5.z <=62:
+                print root.index
+                print up_has_children,down_has_children ,left_has_children ,right_has_children ,back_has_children , front_has_children
+                print rb_has_children, rf_has_children,lb_has_children,lf_has_children 
+                print ub_has_children,uf_has_children ,db_has_children,df_has_children
+                print  ld_has_children, lu_has_children, ru_has_children,rd_has_children 
+                
+#            print 'ever here?'        
+            # if the node has interface nodes and its neighbors have children, 
+            # we need to subdivide
+            if (len(root.enrichNodes) > 0 and 
+                (up_has_children == True or down_has_children == True or
+                 left_has_children == True or right_has_children == True or
+                 back_has_children == True or down_has_children == True or
+                 
+                 rb_has_children == True or rf_has_children == True or
+                 lb_has_children == True or lf_has_children == True or
+                 
+                 ub_has_children == True or uf_has_children == True or
+                 db_has_children == True or df_has_children == True or
+                 
+                 ld_has_children == True or lu_has_children == True or
+                 ru_has_children == True or rd_has_children == True
+                 
+                 )):
+#                print 'what about here?'
+
+                root.divideOnce()      
+
+        if root.children[0] != None:
+            ghost_nodes_enrichment_nodes(tree,root.children[0],masterNode)
+        if root.children[1] != None:
+            ghost_nodes_enrichment_nodes(tree,root.children[1],masterNode)
+        if root.children[2] != None:
+            ghost_nodes_enrichment_nodes(tree,root.children[2],masterNode)
+        if root.children[3] != None:
+            ghost_nodes_enrichment_nodes(tree,root.children[3],masterNode)            
+        if root.children[4] != None:
+            ghost_nodes_enrichment_nodes(tree,root.children[4],masterNode)
+        if root.children[5] != None:
+            ghost_nodes_enrichment_nodes(tree,root.children[5],masterNode)
+        if root.children[6] != None:
+            ghost_nodes_enrichment_nodes(tree,root.children[6],masterNode)
+        if root.children[7] != None:
+            ghost_nodes_enrichment_nodes(tree,root.children[7],masterNode)
             
