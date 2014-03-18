@@ -2,6 +2,8 @@
 # developed by Zachary Smith
 
 def sign(number):
+    if number == 0:
+        return 1
     return number/abs(number)
 
 def bND(*args):

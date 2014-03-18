@@ -925,15 +925,17 @@ if __name__ == "__main__":
     # orig_mesh.vtk is two_channels.dcm converted to VTK format
     # empty_mesh.vtk contains a mesh on an empty set
     print "Reading image in..."
-#    inputImage = sitk.ReadImage("dataset/fibers_512.dcm")
-#    outputImage = sitk.ReadImage("dataset/fibers_512.dcm")
-    inputImage = sitk.ReadImage("dataset/channels_512.dcm")
-    outputImage = sitk.ReadImage("dataset/channels_512.dcm")
+    inputImage = sitk.ReadImage("dataset/fibers_512.dcm")
+    outputImage = sitk.ReadImage("dataset/fibers_512.dcm")
+#    inputImage = sitk.ReadImage("dataset/channels_512.dcm")
+#    outputImage = sitk.ReadImage("dataset/channels_512.dcm")
 
 
 #    sitk.WriteImage(inputImage,"dataset/orig_mesh.vtk");
     
-    nameOutputImage = "dataset/out_mesh.vtk" 
+    nameOutputImage = "dataset/out_fibers_mesh.vtk"
+#    nameOutputImage = "dataset/out_mesh.vtk" 
+ 
     
     imageSize = inputImage.GetSize()
     print "Image size:", imageSize

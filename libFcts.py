@@ -441,27 +441,28 @@ def draw_plane_connections(image, l1,l2,l3,l4, L1,L2,L3,L4):
 #    print L1, L2, L3, L4
     
     if l1 == 0 and l2 == 0 and l3 == 1 and l4 == 1:
-        draw_line(image,L1[0],L2[0])
+        if coords_not_equal(L1[0],L2[0]):
+            draw_line(image,L1[0],L2[0])
+        
     if l1 == 0 and l3 == 0:
-        draw_line(image,L1[0],L3[0])
+        if coords_not_equal(L1[0],L3[0]):
+            draw_line(image,L1[0],L3[0])
+    
     if l1 == 0 and l4 == 0 and l2 == 1 and l3 == 1:
-#        print L1, len(L1)
-#        print L4, len(L4)
-#        print L1.x, L1.y, L1.z
-#        print L4.x, L4.y, L4.z
-        draw_line(image,L1[0],L4[0])
+        if coords_not_equal(L1[0],L4[0]):
+            draw_line(image,L1[0],L4[0])
+    
     if l2 == 0 and l3 == 0 and l1 == 1 and l4 == 1:
-#        print L2.x, L2.y, L2.z
-#        print L3.x, L3.y, L3.z
-        draw_line(image,L2[0],L3[0])
+        if coords_not_equal(L2[0],L3[0]):
+            draw_line(image,L2[0],L3[0])
+            
     if l2 == 0 and l4 == 0 and l1 == 1 and l3 == 1:
-#        print L2, len(L2)
-#        print L4
-#        print L2.x, L2.y, L2.z
-#        print L4.x, L4.y, L4.z       
-        draw_line(image,L2[0],L4[0])
+        if coords_not_equal(L2[0],L4[0]):
+            draw_line(image,L2[0],L4[0])
+            
     if l3 == 0 and l4 == 0 and l1 == 1 and l2 == 1:
-        draw_line(image,L3[0],L4[0])
+        if coords_not_equal(L3[0],L4[0]):
+            draw_line(image,L3[0],L4[0])
     
 def set_interval(imSize,level):
     my_arr = [0,imSize-1]
@@ -631,8 +632,8 @@ def ghost_nodes_enrichment_nodes(tree, root, masterNode):
 # are present on an edge or face of an element
         p1,p2,p3,p4,p5,p6,p7,p8 = root.cube
             
-        if p1.x>=192 and p2.x<=254 and p1.y >=384 and p4.y<=446 and p1.z >=0 and p5.z <=62:
-            print root.index
+#        if p1.x>=192 and p2.x<=254 and p1.y >=384 and p4.y<=446 and p1.z >=0 and p5.z <=62:
+#            print root.index
             
         up_has_children = False
         down_has_children = False
@@ -683,12 +684,12 @@ def ghost_nodes_enrichment_nodes(tree, root, masterNode):
             ru_has_children = neigh_has_children(root,masterNode,'RU')
             rd_has_children = neigh_has_children(root,masterNode,'RD')
                     
-            if p1.x>=192 and p2.x<=254 and p1.y >=384 and p4.y<=446 and p1.z >=0 and p5.z <=62:
-                print root.index
-                print up_has_children,down_has_children ,left_has_children ,right_has_children ,back_has_children , front_has_children
-                print rb_has_children, rf_has_children,lb_has_children,lf_has_children 
-                print ub_has_children,uf_has_children ,db_has_children,df_has_children
-                print  ld_has_children, lu_has_children, ru_has_children,rd_has_children 
+#            if p1.x>=192 and p2.x<=254 and p1.y >=384 and p4.y<=446 and p1.z >=0 and p5.z <=62:
+#                print root.index
+#                print up_has_children,down_has_children ,left_has_children ,right_has_children ,back_has_children , front_has_children
+#                print rb_has_children, rf_has_children,lb_has_children,lf_has_children 
+#                print ub_has_children,uf_has_children ,db_has_children,df_has_children
+#                print  ld_has_children, lu_has_children, ru_has_children,rd_has_children 
                 
 #            print 'ever here?'        
             # if the node has interface nodes and its neighbors have children, 
@@ -729,7 +730,10 @@ def ghost_nodes_enrichment_nodes(tree, root, masterNode):
         if root.children[7] != None:
             ghost_nodes_enrichment_nodes(tree,root.children[7],masterNode)
             
-
+def coords_not_equal(p1,p2):
+    if p1.x == p2.x and p1.y == p2.y and p1.z == p2.z:
+        return 0
+    return 1
 def neigh_has_grandchildren(root, masterNode, direction, whichChildren): 
     
     neigh_index = str(find_neighbor_of(root.index,direction))    
@@ -812,3 +816,159 @@ def tree_balance(tree, root,masterNode):
         if root.children[7] != None:
             tree_balance(tree,root.children[7],masterNode)
             
+def k_neighbor_rule(tree, root,masterNode):
+# checks if k neighobors have children, if so, then subdivide
+# part 1: no more than k1 faces can have children (not grandchildren)
+# part 2: no more than k2: 2 faces and one edge neighbor associated with edge e can have children 
+        p1,p2,p3,p4,p5,p6,p7,p8 = root.cube
+        
+        up_has_children = False
+        down_has_children = False
+        left_has_children = False
+        right_has_children = False
+        back_has_children = False
+        front_has_children = False
+        
+        rb_has_children = False
+        rf_has_children = False
+        lb_has_children = False
+        lf_has_children = False
+        
+        ub_has_children = False
+        uf_has_children = False
+        db_has_children = False
+        df_has_children = False
+        
+        ld_has_children = False
+        lu_has_children = False
+        ru_has_children = False
+        rd_has_children = False
+        
+        k1 = 5
+        # if root has no children look at his neighbors
+        # if all of them do have children, 
+        # root needs to be subdivided
+        if root.has_children == False:
+            
+            up_has_children = neigh_has_children(root,masterNode,'U')
+            if up_has_children:
+                k1_counter += 1
+            
+            down_has_children = neigh_has_children(root,masterNode,'D')
+            if down_has_children:
+                k1_counter += 1
+                
+            left_has_children = neigh_has_children(root,masterNode,'L')
+            if left_has_children:
+                k1_counter += 1
+                
+            right_has_children = neigh_has_children(root,masterNode,'R')
+            if right_has_children:
+                k1_counter += 1
+                
+            back_has_children = neigh_has_children(root,masterNode,'B')
+            if back_has_children:
+                k1_counter += 1
+                
+            front_has_children = neigh_has_children(root,masterNode,'F')
+            if front_has_children:
+                k1_counter += 1
+                
+            # PART 1 constraint   
+            if k1_counter >=5:
+                root.divideOnce()
+            
+            # PART 2 constraint
+            rb_has_children = neigh_has_children(root,masterNode,'RB')
+            if ( (rb_has_children and righ_has_children)  or (rb_has_children and back_has_children)
+                 or (righ_has_children and back_has_children)
+                ):
+                root.divideOnce()
+                
+            rf_has_children = neigh_has_children(root,masterNode,'RF')
+            if ( (rf_has_children and right_has_children) or (rf_has_children and front_has_children)
+                or (right_has_children and front_has_children) 
+                ):
+                root.divideOnce()
+                
+            lb_has_children = neigh_has_children(root,masterNode,'LB')
+            if ( (lb_has_children and left_has_children) or (lb_has_children and back_has_children)
+                 or (left_has_children and back_has_children)
+                 ):
+                root.divideOnce()
+            
+            lf_has_children = neigh_has_children(root,masterNode,'LF')
+            if ( (lf_has_children and left_has_children) or (lf_has_children and front_has_children)
+                 or (left_has_children and front_has_children) 
+                 ):
+                root.divideOnce()
+                
+                
+            ub_has_children = neigh_has_children(root,masterNode,'UB')
+            if ( (ub_has_children and up_has_children) or  (ub_has_children and back_has_children)
+                  or (up_has_children and back_has_children)
+                  ):
+                root.divideOnce()
+                
+            uf_has_children = neigh_has_children(root,masterNode,'UF')
+            if ( (uf_has_children and up_has_children) or (uf_has_children and  front_has_chidren)
+                  or (up_has_children and  front_has_chidren)
+                  ):
+                root.divideOnce()
+                
+            db_has_children = neigh_has_children(root,masterNode,'DB')
+            if ( (db_has_children and down_has_children) or (db_has_children and back_has_children)
+                 or (down_has_children and back_has_children)
+                 ):
+                root.divideOnce()
+                
+            df_has_children = neigh_has_children(root,masterNode,'DF')
+            if ( (df_has_children and down_has_children) or (df_has_children and front_has_children)
+                  or (down_has_children and front_has_children) 
+                  ):
+                root.divideOnce()
+            
+            
+            ld_has_children = neigh_has_children(root,masterNode,'LD')
+            if ( (ld_has_children and left_has_children) or (ld_has_children and down_has_children)
+                 or (left_has_children and down_has_children )
+                 ):
+                root.divideOnce()
+                
+            lu_has_children = neigh_has_children(root,masterNode,'LU')
+            if ( (lu_has_children and left_has_children) or (lu_has_children and up_has_children)
+                 or (left_has_children and up_has_children)
+                 ):
+                root.divideOnce()
+                
+            ru_has_children = neigh_has_children(root,masterNode,'RU')
+            if ( (ru_has_children and right_has_children) or (ru_has_children and up_has_children)
+                  or (right_has_children and up_has_children)
+                  ):
+                root.divideOnce()
+                
+            rd_has_children = neigh_has_children(root,masterNode,'RD')
+            if ( (rd_has_children and right_has_children) or (rd_has_children and down_has_children)
+                or (right_has_children and  down_has_children) 
+                ):
+                root.divideOnce()
+            
+
+                                                                                                                        
+        if root.children[0] != None:
+            k_neighbor_rule(tree,root.children[0],masterNode)
+        if root.children[1] != None:
+            k_neighbor_rule(tree,root.children[1],masterNode)
+        if root.children[2] != None:
+            k_neighbor_rule(tree,root.children[2],masterNode)
+        if root.children[3] != None:
+            k_neighbor_rule(tree,root.children[3],masterNode)
+        if root.children[4] != None:
+            k_neighbor_rule(tree,root.children[4],masterNode)
+        if root.children[5] != None:
+            k_neighbor_rule(tree,root.children[5],masterNode)
+        if root.children[6] != None:
+            k_neighbor_rule(tree,root.children[6],masterNode)
+        if root.children[7] != None:
+            k_neighbor_rule(tree,root.children[7],masterNode)
+                        
