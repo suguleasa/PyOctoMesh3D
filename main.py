@@ -933,7 +933,7 @@ if __name__ == "__main__":
 
 #    sitk.WriteImage(inputImage,"dataset/orig_mesh.vtk");
     
-    nameOutputImage = "dataset/out_fibers_mesh.vtk"
+    nameOutputImage = "dataset/out_fibers_mesh_constraint1.vtk"
 #    nameOutputImage = "dataset/out_mesh.vtk" 
  
     
@@ -980,17 +980,17 @@ if __name__ == "__main__":
 #    print p5.x, p5.y, p5.z
 
       
-    totalNumberOfNodes = tree.count_nodes(rootNode)
-    newTotalNumberOfNodes = -1
-    print totalNumberOfNodes
-         
-    while totalNumberOfNodes != newTotalNumberOfNodes:
-        print 'Rebalancing tree by multiple passes '
-        masterNode = rootNode
-        totalNumberOfNodes = newTotalNumberOfNodes
-        tree_balance(tree,rootNode,masterNode)
-        newTotalNumberOfNodes = tree.count_nodes(rootNode)
- 
+#    totalNumberOfNodes = tree.count_nodes(rootNode)
+#    newTotalNumberOfNodes = -1
+#    print totalNumberOfNodes
+#         
+#    while totalNumberOfNodes != newTotalNumberOfNodes:
+#        print 'Rebalancing tree by multiple passes '
+#        masterNode = rootNode
+#        totalNumberOfNodes = newTotalNumberOfNodes
+#        tree_balance(tree,rootNode,masterNode)
+#        newTotalNumberOfNodes = tree.count_nodes(rootNode)
+# 
     
     masterNode = rootNode
     totalNumberOfNodes = tree.count_nodes(rootNode)

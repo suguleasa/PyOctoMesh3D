@@ -12,7 +12,7 @@ TOL_error = 3
 
 VAL = 1
 
-MAX_SIZE_X = 64
+MAX_SIZE_X = 128
 MIN_SIZE_X = 32
 MAX_SIZE_Y = 128
 MIN_SIZE_Y = 32
