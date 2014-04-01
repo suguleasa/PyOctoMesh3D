@@ -2,7 +2,7 @@ import numpy
 import SimpleITK as sitk
 from libFcts import *
 from globalVars import *
-import dicom
+# import dicom
 import scipy
   
 LIST = []      
@@ -148,57 +148,76 @@ class Node():
                 L11 = search_in(LIST,p3r,p7r,self.inImage)
                 L12 = search_in(LIST,p4r,p8r,self.inImage)
  
+#                 print len(L1), len(L2), len(L3), len(L4), len(L5), len(L6), len(L7), len(L8), len(L9), len(L10), len(L11), len(L12)
+
+                list_enrichNodes = []
+                
                 if len(L1) == 1:
                     L1 = L1[0]
                     if in_child_k(cubes[n],L1) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L1]
+                    list_enrichNodes.append([L1])
                 if len(L2) == 1:
                     L2 = L2[0]
                     if in_child_k(cubes[n],L2) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L2]
+                    list_enrichNodes.append([L2])
                 if len(L3) == 1:
                     L3 = L3[0]
                     if in_child_k(cubes[n],L3) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L3]
+                    list_enrichNodes.append([L3])
                 if len(L4) == 1:
                     L4 = L4[0]
                     if in_child_k(cubes[n],L4) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L4]
+                    list_enrichNodes.append([L4])
                         
                 if len(L5) == 1:
                     L5 = L5[0]
                     if in_child_k(cubes[n],L5) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L5]
+                    list_enrichNodes.append([L5])
                 if len(L6) == 1:
                     L6 = L6[0]
                     if in_child_k(cubes[n],L6) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L6]
+                    list_enrichNodes.append([L6])
                 if len(L7) == 1:
                     L7 = L7[0]
                     if in_child_k(cubes[n],L7) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L7]
+                    list_enrichNodes.append([L7])
                 if len(L8) == 1:
                     L8 = L8[0]
                     if in_child_k(cubes[n],L8) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L8]
+                    list_enrichNodes.append([L8])
                         
                 if len(L9) == 1:
                     L9 = L9[0]
                     if in_child_k(cubes[n],L9) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L9]
+                    list_enrichNodes.append([L9])
                 if len(L10) == 1:
                     L10 = L10[0]
                     if in_child_k(cubes[n],L10) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L10]
+                    list_enrichNodes.append([L10])
                 if len(L11) == 1:
                     L11 = L11[0]
                     if in_child_k(cubes[n],L11) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L11]
+                    list_enrichNodes.append([L11])
                 if len(L12) == 1:
                     L12 = L12[0]
                     if in_child_k(cubes[n],L12) == True:
-                        self.children[n].enrichNodes = self.children[n].enrichNodes + [L12]                                
+                        self.children[n].enrichNodes = self.children[n].enrichNodes + [L12]
+                    list_enrichNodes.append([L12])                                
             
+#                 print list_enrichNodes, len(list_enrichNodes)
+                self.children[n].enrichNodes = list_enrichNodes
+#                 print len(self.children[n].enrichNodes)
                 self.children[n].subdivide()
                 
         if ( self.children[0] != None and
@@ -281,57 +300,72 @@ class Node():
                 L11 = search_in(LIST,p3r,p7r,self.inImage)
                 L12 = search_in(LIST,p4r,p8r,self.inImage)
  
+                list_enrichNodes = []
+                
                 if len(L1) == 1:
                     L1 = L1[0]
                     if in_child_k(cubes[n],L1) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L1]
+                    list_enrichNodes.append([L1])
                 if len(L2) == 1:
                     L2 = L2[0]
                     if in_child_k(cubes[n],L2) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L2]
+                    list_enrichNodes.append([L2])
                 if len(L3) == 1:
                     L3 = L3[0]
                     if in_child_k(cubes[n],L3) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L3]
+                    list_enrichNodes.append([L3])
                 if len(L4) == 1:
                     L4 = L4[0]
                     if in_child_k(cubes[n],L4) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L4]
+                    list_enrichNodes.append([L4])
                         
                 if len(L5) == 1:
                     L5 = L5[0]
                     if in_child_k(cubes[n],L5) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L5]
+                    list_enrichNodes.append([L5])
                 if len(L6) == 1:
                     L6 = L6[0]
                     if in_child_k(cubes[n],L6) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L6]
+                    list_enrichNodes.append([L6])
                 if len(L7) == 1:
                     L7 = L7[0]
                     if in_child_k(cubes[n],L7) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L7]
+                    list_enrichNodes.append([L7])
                 if len(L8) == 1:
                     L8 = L8[0]
                     if in_child_k(cubes[n],L8) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L8]
+                    list_enrichNodes.append([L8])
                         
                 if len(L9) == 1:
                     L9 = L9[0]
                     if in_child_k(cubes[n],L9) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L9]
+                    list_enrichNodes.append([L9])
                 if len(L10) == 1:
                     L10 = L10[0]
                     if in_child_k(cubes[n],L10) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L10]
+                    list_enrichNodes.append([L10])
                 if len(L11) == 1:
                     L11 = L11[0]
                     if in_child_k(cubes[n],L11) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L11]
+                    list_enrichNodes.append([L11])
                 if len(L12) == 1:
                     L12 = L12[0]
                     if in_child_k(cubes[n],L12) == True:
-                        self.children[n].enrichNodes = self.children[n].enrichNodes + [L12]                                
+                        self.children[n].enrichNodes = self.children[n].enrichNodes + [L12]
+                    list_enrichNodes.append([L12])                                
             
+                self.children[n].enrichNodes = list_enrichNodes
             
         if ( self.children[0] != None and
              self.children[1] != None and
@@ -609,15 +643,20 @@ class CNode(Node):
 
 
                 if len(x_list_c) > 0 and  len(y_list_c) > 0 and len(z_list_c) >0:
-                        res = calc_plane_res(x_list_c, y_list_c, z_list_c)
-                        if res <= 0.0001 and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                        [res,coeffs] = calc_plane_residual(x_list_c, y_list_c, z_list_c)
+                        if res <= 0.001 and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
 #                            draw_plane_connections(self.outImage, l1,l2,l3,l4, L1,L2,L3,L4) # 1234
 #                            draw_plane_connections(self.outImage, l1,l2,l6,l5, L1,L2,L6,L5) # 1265
 #                            draw_plane_connections(self.outImage, l3,l2,l6,l7, L3,L2,L6,L7) # 3267
 #                            draw_plane_connections(self.outImage, l4,l3,l7,l8, L4,L3,L7,L8) # 4378
 #                            draw_plane_connections(self.outImage, l4,l1,l5,l8, L4,L1,L5,L8) # 4158
 #                            draw_plane_connections(self.outImage, l5,l6,l7,l8, L5,L6,L7,L8) # 5678
-                            5 == 5
+                            vecCoord = []
+                            for i in range(0,len(x_list_c)):
+                                vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
+                            self.enrichNodes = vecCoord 
+                            print 'inside residual approx', len(self.enrichNodes)
+
 #                            return False  
                         
                         else: # residual criterion approximation of the interface is not met
@@ -807,6 +846,7 @@ def draw_interface(outImage, inImage, tree_list, masterNode):
 #        print ' tree list', tree_list[i]
         root_i = get_node_by_id(masterNode,tree_list[i])    
         if len(root_i.enrichNodes) > 1:
+            
             p1,p2,p3,p4,p5,p6,p7,p8 = root_i.cube
             l1 = ends_in_same_bin(inImage,p1,p2)
             l2 = ends_in_same_bin(inImage,p2,p3)
@@ -835,22 +875,7 @@ def draw_interface(outImage, inImage, tree_list, masterNode):
             L10 = search_in(LIST,p2,p6,inImage)
             L11 = search_in(LIST,p3,p7,inImage)
             L12 = search_in(LIST,p4,p8,inImage)
-            
-#            print len(L1)
-#            L1 = L1[0]
-#            L2 = L2[0]
-#            L3 = L3[0]
-#            L4 = L4[0]
-#            L5 = L5[0]
-#            L6 = L6[0]
-#            L7 = L7[0]
-#            L8 = L8[0]
-#            L9 = L9[0]
-#            L10 = L10[0]
-#            L11 = L11[0]
-#            L12 = L12[0]
-#            draw_line(image,root_i.enrichNodes[0], root_i.enrichNodes[1])
-#            print 'root_i.enrichNodes', root_i.enrichNodes[0]
+
             draw_plane_connections(outImage, l1,l2,l3,l4, L1,L2,L3,L4) # 1234
             draw_plane_connections(outImage, l1,l2,l6,l5, L1,L2,L6,L5) # 1265
             draw_plane_connections(outImage, l3,l2,l6,l7, L3,L2,L6,L7) # 3267
@@ -925,8 +950,8 @@ if __name__ == "__main__":
     # orig_mesh.vtk is two_channels.dcm converted to VTK format
     # empty_mesh.vtk contains a mesh on an empty set
     print "Reading image in..."
-    inputImage = sitk.ReadImage("dataset/fibers_512.dcm")
-    outputImage = sitk.ReadImage("dataset/fibers_512.dcm")
+    inputImage = sitk.ReadImage("dataset/fibers_512x256.dcm")
+    outputImage = sitk.ReadImage("dataset/fibers_512x256.dcm")
 #    inputImage = sitk.ReadImage("dataset/channels_512.dcm")
 #    outputImage = sitk.ReadImage("dataset/channels_512.dcm")
 
@@ -958,45 +983,70 @@ if __name__ == "__main__":
     
     masterNode = CNode(None,cube,inputImage,outputImage,imageSize)
     
-#    masterNode = rootNode
+    masterNode = rootNode
 
     totalNumberOfNodes = tree.count_nodes(rootNode)
     print totalNumberOfNodes
     newTotalNumberOfNodes = -1
     while totalNumberOfNodes != newTotalNumberOfNodes:
-        print 'No enrichment nodes and hanging nodes in the same element '
-        totalNumberOfNodes = newTotalNumberOfNodes
-        masterNode = rootNode
-        ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
-        newTotalNumberOfNodes = tree.count_nodes(rootNode)
-        
+         print 'No enrichment nodes and hanging nodes in the same element '
+         totalNumberOfNodes = newTotalNumberOfNodes
+         masterNode = rootNode
+         ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
+         newTotalNumberOfNodes = tree.count_nodes(rootNode)
+         
     masterNode = rootNode
     
-     
-#    p1,p2,p3,p4,p5,p6,p7,p8 = rootNode.children[6].cube
-#    print p1.x, p1.y, p1.z
-#    print p2.x, p2.y, p2.z
-#    print p4.x, p4.y, p4.z
-#    print p5.x, p5.y, p5.z
 
-      
-#    totalNumberOfNodes = tree.count_nodes(rootNode)
-#    newTotalNumberOfNodes = -1
-#    print totalNumberOfNodes
-#         
-#    while totalNumberOfNodes != newTotalNumberOfNodes:
-#        print 'Rebalancing tree by multiple passes '
-#        masterNode = rootNode
-#        totalNumberOfNodes = newTotalNumberOfNodes
-#        tree_balance(tree,rootNode,masterNode)
-#        newTotalNumberOfNodes = tree.count_nodes(rootNode)
+#     totalNumberOfNodes = tree.count_nodes(rootNode)
+#     newTotalNumberOfNodes = -1
+#     print totalNumberOfNodes
+#          
+#     while totalNumberOfNodes != newTotalNumberOfNodes:
+#         print 'Rebalancing tree by multiple passes '
+#         masterNode = rootNode
+#         totalNumberOfNodes = newTotalNumberOfNodes
+#         tree_balance(tree,rootNode,masterNode)
+#         newTotalNumberOfNodes = tree.count_nodes(rootNode)
+#  
+#     
+#     masterNode = rootNode
+#     totalNumberOfNodes = tree.count_nodes(rootNode)
+#     newTotalNumberOfNodes = -1
+#      
+#     print totalNumberOfNodes
 # 
+# 
+#     while totalNumberOfNodes != newTotalNumberOfNodes:
+#          print 'k neighbor rule'
+#          totalNumberOfNodes = newTotalNumberOfNodes
+#          masterNode = rootNode
+#          k_neighbor_rule(tree, rootNode, masterNode)
+#          newTotalNumberOfNodes = tree.count_nodes(rootNode)
+#       
+#     print 'total number of element nodes', newTotalNumberOfNodes
     
     masterNode = rootNode
-    totalNumberOfNodes = tree.count_nodes(rootNode)
-    newTotalNumberOfNodes = -1
     
-    print totalNumberOfNodes
+    llist = []
+    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
+    
+    
+    print "Applying the high stress concentration constraint"
+    full_list = stress_concentration_constraint(tree_list_of_nodes, rootNode,outputImage)
+#     divide_high_stress_elements(full_list,rootNode, outputImage)
+    
+    masterNode = rootNode
+
+    llist = []
+    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
+    
+    
+    draw_interface(outputImage, inputImage, tree_list_of_nodes, masterNode)
+    
+    print 'writing the image out'
+    sitk.WriteImage(outputImage,nameOutputImage);
+
 #    rt = get_node_by_id(rootNode,['132'])
 #    rt2 = find_neighbor_of(rt.index,'F')
 #    print rt.index, rt2
@@ -1008,14 +1058,4 @@ if __name__ == "__main__":
 #
 #    rt = get_node_by_id(rootNode,['301'])
 #    rt2 = find_neighbor_of(rt.index,'RUF')
-#    print rt.index, rt2
-#
-    llist = []
-    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
-    masterNode = rootNode
-
-    draw_interface(outputImage, inputImage, tree_list_of_nodes, masterNode)
-    
-    print 'writing the image out'
-    sitk.WriteImage(outputImage,nameOutputImage);
-   
+#    print rt.index, rt2   
