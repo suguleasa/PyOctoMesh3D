@@ -6,6 +6,8 @@ from numpy import *
 import scipy
 import numpy
 from bresenham import *
+from pvtrace import Geometry
+
 
 D = {}
 D['0'] = {
@@ -844,7 +846,7 @@ def k_neighbor_rule(tree, root,masterNode):
         ru_has_children = False
         rd_has_children = False
         
-        k1 = 5
+
         k1_counter = 0
         k2_counter = 0
         # if root has no children look at his neighbors
@@ -877,84 +879,109 @@ def k_neighbor_rule(tree, root,masterNode):
                 k1_counter += 1
                 
             # PART 1 constraint   
-            if k1_counter >=5:
+            if k1_counter >= k1_CONST:
                 root.divideOnce()
             
             # PART 2 constraint
             rb_has_children = neigh_has_children(root,masterNode,'RB')
-            if ( (rb_has_children and righ_has_children)  or (rb_has_children and back_has_children)
-                 or (right_has_children and back_has_children)
+            if ( (rb_has_children and righ_has_children and back_has_children)
                 ):
-                root.divideOnce()
-                
+                # edge is nearly regular
+                k2_counter += 1
+            if k2_counter >= k2_CONST:
+                root.divideOnce()                
+            
             rf_has_children = neigh_has_children(root,masterNode,'RF')
-            if ( (rf_has_children and right_has_children) or (rf_has_children and front_has_children)
-                or (right_has_children and front_has_children) 
+            if ( (rf_has_children and right_has_children and front_has_children)
                 ):
-                root.divideOnce()
+                # edge is nearly regular
+                k2_counter += 1
                 
             lb_has_children = neigh_has_children(root,masterNode,'LB')
-            if ( (lb_has_children and left_has_children) or (lb_has_children and back_has_children)
-                 or (left_has_children and back_has_children)
+            if ( (lb_has_children and left_has_children and back_has_children)
                  ):
-                root.divideOnce()
+                # edge is nearly regular
+                k2_counter += 1
+            if k2_counter >= k2_CONST:
+                root.divideOnce()                
+            
             
             lf_has_children = neigh_has_children(root,masterNode,'LF')
-            if ( (lf_has_children and left_has_children) or (lf_has_children and front_has_children)
-                 or (left_has_children and front_has_children) 
+            if ( (lf_has_children and left_has_children and front_has_children)
                  ):
-                root.divideOnce()
+                # edge is nearly regular
+                k2_counter += 1
+            if k2_counter >= k2_CONST:
+                root.divideOnce()                
+            
                 
                 
             ub_has_children = neigh_has_children(root,masterNode,'UB')
-            if ( (ub_has_children and up_has_children) or  (ub_has_children and back_has_children)
-                  or (up_has_children and back_has_children)
+            if ( (ub_has_children and up_has_children and back_has_children)
                   ):
-                root.divideOnce()
+                # edge is nearly regular
+                k2_counter += 1
+            if k2_counter >= k2_CONST:
+                root.divideOnce()                
+            
                 
             uf_has_children = neigh_has_children(root,masterNode,'UF')
-            if ( (uf_has_children and up_has_children) or (uf_has_children and  front_has_chidren)
-                  or (up_has_children and  front_has_chidren)
+            if ( (uf_has_children and up_has_children and  front_has_chidren)
                   ):
-                root.divideOnce()
-                
+                # edge is nearly regular
+                k2_counter += 1
+            if k2_counter >= k2_CONST:
+                root.divideOnce()                
+                            
             db_has_children = neigh_has_children(root,masterNode,'DB')
-            if ( (db_has_children and down_has_children) or (db_has_children and back_has_children)
-                 or (down_has_children and back_has_children)
+            if ( (db_has_children and down_has_children and back_has_children)
                  ):
-                root.divideOnce()
-                
+                # edge is nearly regular
+                k2_counter += 1
+            if k2_counter >= k2_CONST:
+                root.divideOnce()                
+                            
             df_has_children = neigh_has_children(root,masterNode,'DF')
-            if ( (df_has_children and down_has_children) or (df_has_children and front_has_children)
-                  or (down_has_children and front_has_children) 
+            if ( (df_has_children and down_has_children and front_has_children)
                   ):
-                root.divideOnce()
-            
+                # edge is nearly regular
+                k2_counter += 1
+            if k2_counter >= k2_CONST:
+                root.divideOnce()                
+                        
             
             ld_has_children = neigh_has_children(root,masterNode,'LD')
-            if ( (ld_has_children and left_has_children) or (ld_has_children and down_has_children)
-                 or (left_has_children and down_has_children )
+            if ( (ld_has_children and left_has_children and down_has_children)
                  ):
-                root.divideOnce()
-                
+                # edge is nearly regular
+                k2_counter += 1
+            if k2_counter >= k2_CONST:
+                root.divideOnce()                
+                            
             lu_has_children = neigh_has_children(root,masterNode,'LU')
-            if ( (lu_has_children and left_has_children) or (lu_has_children and up_has_children)
-                 or (left_has_children and up_has_children)
+            if ( (lu_has_children and left_has_children and up_has_children)
                  ):
-                root.divideOnce()
-                
+                # edge is nearly regular
+                k2_counter += 1
+            if k2_counter >= k2_CONST:
+                root.divideOnce()                
+                            
             ru_has_children = neigh_has_children(root,masterNode,'RU')
-            if ( (ru_has_children and right_has_children) or (ru_has_children and up_has_children)
-                  or (right_has_children and up_has_children)
+            if ( (ru_has_children and right_has_children and up_has_children)
                   ):
-                root.divideOnce()
-                
+                # edge is nearly regular
+                k2_counter += 1
+            if k2_counter >= k2_CONST:
+                root.divideOnce()                
+                            
             rd_has_children = neigh_has_children(root,masterNode,'RD')
-            if ( (rd_has_children and right_has_children) or (rd_has_children and down_has_children)
-                or (right_has_children and  down_has_children) 
+            if ( (rd_has_children and right_has_children and down_has_children)
                 ):
-                root.divideOnce()
-            
+                # edge is nearly regular
+                k2_counter += 1
+            if k2_counter >= k2_CONST:
+                root.divideOnce()                
+                        
 
                                                                                                                         
         if root.children[0] != None:
@@ -974,6 +1001,31 @@ def k_neighbor_rule(tree, root,masterNode):
         if root.children[7] != None:
             k_neighbor_rule(tree,root.children[7],masterNode)
 
+def opposite_direction(direc):
+# swap direction - look oppposite
+    N_len = len(direc)    
+    direction = list(direc)    
+    new_dir = list(' '* N_len)
+    
+    for i in range(0, N_len):
+        if direction[i] == 'U':
+            new_dir[i] = 'D'
+        if direction[i] == 'D':
+            new_dir[i] = 'U'
+            
+        if direction[i] == 'F':
+            new_dir[i] = 'B'
+        if direction[i] == 'B':
+            new_dir[i] = 'F'
+            
+        if direction[i] == 'L':
+            new_dir[i] = 'R'
+        if direction[i] == 'R':
+            new_dir[i] = 'L'
+            
+    return ''.join(new_dir)
+    
+    
 def stress_concentration_constraint(tree_list, masterNode, image):
 
     n = len(tree_list)
@@ -984,104 +1036,11 @@ def stress_concentration_constraint(tree_list, masterNode, image):
     # for each node in the tree:
     for i in range(0,n):
         root_i = get_node_by_id(masterNode,tree_list[i])   
-#         p1,p2,p3,p4,p5,p6,p7,p8 = root_i.cube
+        p1,p2,p3,p4,p5,p6,p7,p8 = root_i.cube
+        # for each non-hom node in the tree
         if len(root_i.enrichNodes)>1:
-            print len(root_i.enrichNodes)
-            print root_i.enrichNodes[0], root_i.enrichNodes[1]
-        
-#         L1 = search_in(LIST,p1,p2,image)
-#         print len(L1)
-#         L2 = search_in(LIST,p2,p3,image)
-#         L3 = search_in(LIST,p4,p3,image)
-#         L4 = search_in(LIST,p1,p4,image)
-#         
-#         L5 = search_in(LIST,p5,p6,image)
-#         L6 = search_in(LIST,p6,p7,image)
-#         L7 = search_in(LIST,p8,p7,image)
-#         L8 = search_in(LIST,p5,p8,image)
-#         
-#         L9 = search_in(LIST,p1,p5,image)
-#         L10 = search_in(LIST,p2,p6,image)
-#         L11 = search_in(LIST,p3,p7,image)
-#         L12 = search_in(LIST,p4,p8,image)
-    #         L1 = root_i.enrichNodes[0]
-    #         L2 = root_i.enrichNodes[1]
-    #         L3 = root_i.enrichNodes[2]
-    #         L4 = root_i.enrichNodes[3]
-    #         L5 = root_i.enrichNodes[4]
-    #         L6 = root_i.enrichNodes[5]
-    #         L7 = root_i.enrichNodes[6]
-    #         L8 = root_i.enrichNodes[7]
-    #         L9 = root_i.enrichNodes[8]
-    #         L10 = root_i.enrichNodes[9]
-    #         L11 = root_i.enrichNodes[10]
-    #         L12 = root_i.enrichNodes[11]
-        
-
-#         if len(L1) == 1:
-#             L1 = L1[0]
-#             x_list_c.append(L1.x)
-#             y_list_c.append(L1.y)
-#             z_list_c.append(L1.z)
-#         
-#         if len(L2) == 1:
-#             L2 = L2[0]
-#             x_list_c.append(L2.x)
-#             y_list_c.append(L2.y)
-#             z_list_c.append(L2.z)
-#         
-#         if len(L3) == 1:
-#             L3 = L3[0]
-#             x_list_c.append(L3.x)
-#             y_list_c.append(L3.y)
-#             z_list_c.append(L3.z)
-#         if len(L4) == 1:
-#             L4 = L4[0]
-#             x_list_c.append(L4.x)
-#             y_list_c.append(L4.y)
-#             z_list_c.append(L4.z)
-#         if len(L5) == 1:
-#             L5 = L5[0]
-#             x_list_c.append(L5.x)
-#             y_list_c.append(L5.y)
-#             z_list_c.append(L5.z)
-#         if len(L6) == 1:
-#             L6 = L6[0]           
-#             x_list_c.append(L6.x)
-#             y_list_c.append(L6.y)
-#             z_list_c.append(L6.z)                                     
-#         if len(L7) == 1:
-#             L7 = L7[0]
-#             x_list_c.append(L7.x)
-#             y_list_c.append(L7.y)
-#             z_list_c.append(L7.z)
-#         if len(L8) == 1:
-#             L8 = L8[0]
-#             x_list_c.append(L8.x)
-#             y_list_c.append(L8.y)
-#             z_list_c.append(L8.z)
-#         if len(L9) == 1:
-#             L9 = L9[0]
-#             x_list_c.append(L9.x)
-#             y_list_c.append(L9.y)
-#             z_list_c.append(L9.z)
-#         if len(L10) == 1:
-#             L10 = L10[0]
-#             x_list_c.append(L10.x)
-#             y_list_c.append(L10.y)
-#             z_list_c.append(L10.z)
-#         if len(L11) == 1:
-#             L11 = L11[0]
-#             x_list_c.append(L11.x)
-#             y_list_c.append(L11.y)
-#             z_list_c.append(L11.z)
-#         if len(L12) == 1:
-#             L12 = L12[0]
-#             x_list_c.append(L12.x)
-#             y_list_c.append(L12.y)
-#             z_list_c.append(L12.z)
-            
-#         print len(x_list_c), len(y_list_c), len(z_list_c), len(root_i.enrichNodes)
+#            print len(root_i.enrichNodes)
+#            print root_i.enrichNodes[0], root_i.enrichNodes[1]
 
             x_list_c = []
             y_list_c = []
@@ -1110,6 +1069,23 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                 
                 [res,coeffs] = calc_plane_residual(x_list_c, y_list_c, z_list_c)
                 N = coeffs
+            
+                dx = abs(p1.x - p2.x)
+                dy = abs(p1.y - p5.y)
+                dz = abs(p1.z - p4.z)
+                box = Geometry.Box([p1.x,p1.y,p1.z], [dx,dy,dz])
+                ray = Geometry.Ray(position=(centroid.x, centroid.y, centroid.z), direction=(N[0],N[1],N[2]))
+                inters = box.intersection(ray)
+                print inters
+                one_way = inters[0]
+                id1 = box.surface_identifier(one_way)
+                counter1 = 0
+                list1 = []
+                
+                other_way = inters[1]
+                id2 = box.surface_identifier(other_way)
+                counter2 = 0
+                list2 = []
                                   
 def stress_concentration_constraint2(tree_list, masterNode, image):
 
@@ -1387,31 +1363,25 @@ def divide_high_stress_elements(full_list, masterNode,image):
         node1.children[2].divideOnce()
         node1.children[3].divideOnce()
                     
-def element_normal_intersection(pt1,pt2,node,image):
+def element_normal_intersection(pt1,pt2,node,image, centroid, coeffs):
     
     NoneINT = -9999
-    midpt = find_mid_point(pt1,pt2)
     
-    dx = pt1.x - pt2.x
-    dy = pt1.y - pt2.y
-    
-    N1 = [-dy, dx] #normal 1
-    N2 = [dy, -dx] #normal 2
-    
-    ptN1 = Coordinate( midpt.x + N1[0], midpt.y + N1[1])
-    ptN2 = Coordinate( midpt.x + N2[0], midpt.y + N2[1])
+    ptN1 = Coordinate( centroid.x + coeffs[0], centroid.y + coeffs[1], centroid.z + coeffs[2])
+    ptN2 = Coordinate( centroid.x - coeffs[0], centroid.y - coeffs[1], centroid.z - coeffs[2])
 
     
-    if 0 <= ptN1.x and ptN1.x <= node.imsize[0] and 0 <= ptN1.y and ptN1.y <= node.imsize[1]:
-        ptN = Coordinate(ptN1.x, ptN1.y)
-    elif 0 <= ptN2.x and ptN2.x <= node.imsize[0] and 0 <= ptN2.y and ptN2.y <= node.imsize[1]:
-        ptN = Coordinate(ptN2.x, ptN2.y)
+    if 0 <= ptN1.x and ptN1.x <= node.imsize[0] and 0 <= ptN1.y and ptN1.y <= node.imsize[1] and 0 <= ptN1.z and ptN1.z <= node.imsize[2]:
+        ptN = Coordinate(ptN1.x, ptN1.y, ptN1.z)
+    elif 0 <= ptN2.x and ptN2.x <= node.imsize[0] and 0 <= ptN2.y and ptN2.y <= node.imsize[1] and 0 <= ptN2.z and ptN2.z <= node.imsize[2]:
+        ptN = Coordinate(ptN2.x, ptN2.y, ptN2.z)
         
-    dx_m = ptN.x - midpt.x
-    dy_m = ptN.y - midpt.y
+    dx_m = ptN.x - centroid.x
+    dy_m = ptN.y - centroid.y
+    dz_m = ptN.z - centroid.z
 
     
-    p1,p2,p3,p4 = node.rect
+    p1,p2,p3,p4,p5,p6,p7,p8 = node.cube
 
     
     #Compute the intersection of the normal with the 4 sides of an element
@@ -1556,6 +1526,7 @@ def element_normal_intersection(pt1,pt2,node,image):
         
     neigh_list = [NW_edge,N_edge,NE_edge,E_edge,SE_edge,S_edge,SW_edge,W_edge]
     return [side1,side2,side3,side4,neigh_list, direction_list,whichSide]
+
         
 def set_homog(masterNode,llist):
     n = len(llist)

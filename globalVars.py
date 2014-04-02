@@ -18,3 +18,7 @@ MAX_SIZE_Y = 64
 MIN_SIZE_Y = 64
 MAX_SIZE_Z = 64
 MIN_SIZE_Z = 64
+
+# K-neighbor rule
+k1_CONST = 5
+k2_CONST = 2
