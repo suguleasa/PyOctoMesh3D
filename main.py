@@ -4,6 +4,7 @@ from libFcts import *
 from globalVars import *
 # import dicom
 import scipy
+import external.transformations as tf
   
 LIST = []      
 class Node():
@@ -943,7 +944,7 @@ def print_vtk_file(p,Usolution,plist):
         target.write(strz + ' \n')
 
     target.close()
-        
+
 if __name__ == "__main__":
     # two_channels.dcm contains the original data
     # img.vtk contains an empty dataset of the same dimensions with the original
@@ -965,10 +966,6 @@ if __name__ == "__main__":
     imageSize = inputImage.GetSize()
     print "Image size:", imageSize
 
-#    points = [[0,0,0],[0,0.1,0],[0.1,0.1,-0.03],[0.1,0,-0.03]]
-#    polygon = Geometry.Polygon(points)
-#    ray = Geometry.Ray(position=(0,0,0), direction=(0,0,1))
-#    print polygon.intersection(ray)
      
     # setting the 4 corners coordinates
     p1 = Coordinate(0,0,0)
@@ -980,16 +977,6 @@ if __name__ == "__main__":
     p7 = Coordinate(imageSize[0]-1,imageSize[1]-1,imageSize[2]-1)
     p8 = Coordinate(0,imageSize[1]-1,imageSize[2]-1)
     
-
-#    box = Geometry.Box([0,0,0], [256,512,512])
-#    ray = Geometry.Ray(position=(0,0,0), direction=(256,512,512))
-#    inters = box.intersection(ray)
-#    print inters
-#    print inters[0]
-#    print inters[1]
-#    id = box.surface_identifier([10,60,0])
-#    print 'id = ',id
-#    print '---------below'
     
     cube = [p1,p2,p3,p4,p5,p6,p7,p8]
     rootNode = CNode(None,cube,inputImage,outputImage,imageSize)
