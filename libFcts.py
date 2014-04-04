@@ -1123,44 +1123,65 @@ def intervalcheck(a,b,c):
     else:
         return False
     
-def which_face(local_point, box_origin, box_extent):
+def which_face(L, root):
             
-        local_point = numpy.array(local_point)
-        def_points = numpy.concatenate((numpy.array(box_origin), numpy.array(box_extent)))
-
-        print 'def points', def_points
-        surface_id_array = [0,0,0,0,0,0]
-          
-        for i in range(0,3):
-            if cmp_floats(def_points[i], local_point[i]):
-                print 'first if'
-                for j in range(0,3):
-                    print intervalcheck(def_points[j],local_point[j],def_points[j+3]), def_points[j],local_point[j],def_points[j+3]
-                    if intervalcheck(def_points[j],local_point[j],def_points[j+3]):
-                        surface_id_array[i] = 1
-                        
-                   
-            if cmp_floats(def_points[i+3], local_point[i]):
-                print 'second if'
-                for j in range(0,3):
-                    print intervalcheck(def_points[j],local_point[j],def_points[j+3]), def_points[j],local_point[j],def_points[j+3]
-                    if intervalcheck(def_points[j],local_point[j],def_points[j+3]):
-                        surface_id_array[i+3] = 1                        
-                    
+#        local_point = numpy.array(local_point)
+#        def_points = numpy.concatenate((numpy.array(box_origin), numpy.array(box_extent)))
+#
+#        print 'def points', def_points
+#        surface_id_array = [0,0,0,0,0,0]
+#          
+#        for i in range(0,3):
+#            if cmp_floats(def_points[i], local_point[i]):
+#                print 'first if'
+#                for j in range(0,3):
+#                    print intervalcheck(def_points[j],local_point[j],def_points[j+3]), def_points[j],local_point[j],def_points[j+3]
+#                    if intervalcheck(def_points[j],local_point[j],def_points[j+3]):
+#                        surface_id_array[i] = 1
+#                        
+#                   
+#            if cmp_floats(def_points[i+3], local_point[i]):
+#                print 'second if'
+#                for j in range(0,3):
+#                    print intervalcheck(def_points[j],local_point[j],def_points[j+3]), def_points[j],local_point[j],def_points[j+3]
+#                    if intervalcheck(def_points[j],local_point[j],def_points[j+3]):
+#                        surface_id_array[i+3] = 1                        
+        p1,p2,p3,p4,p5,p6,p7,p8 = root.cube        
+        x1 = p1.x
+        x2 = p2.x
+        y1 = p1.y
+        y2 = p4.y
+        z1 = p1.z
+        z2 = p5.z
         surface_name = []
-        
-        if surface_id_array[0] == 1:
+
+        if L.x == x1:
             surface_name.append('L')
-        if surface_id_array[1] == 1:
-            surface_name.append('D')
-        if surface_id_array[2] == 1:
-            surface_name.append('B')
-        if surface_id_array[3] == 1:
+        if L.x == x2:
             surface_name.append('R')
-        if surface_id_array[4] == 1:
-            surface_name.append('U')
-        if surface_id_array[5] == 1:
+        if L.y == y1:
+            surface_name.append('B')
+        if L.y == y2:
             surface_name.append('F')
+        if L.z == z1:
+            surface_name.append('U')
+        if L.z == z2:
+            surface_name.append('D')
+
+        
+                    
+#        if surface_id_array[0] == 1:
+#            surface_name.append('L')
+#        if surface_id_array[1] == 1:
+#            surface_name.append('D')
+#        if surface_id_array[2] == 1:
+#            surface_name.append('B')
+#        if surface_id_array[3] == 1:
+#            surface_name.append('R')
+#        if surface_id_array[4] == 1:
+#            surface_name.append('U')
+#        if surface_id_array[5] == 1:
+#            surface_name.append('F')
         
         return_id = ''
         
@@ -1276,9 +1297,9 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                 box_extent = [dx,dy,dz]
                 
                 one_way = inters[0]
-                id1 =  which_face(one_way, box_origin, box_extent)
-                print box_origin, box_extent
-                print one_way
+                id1 =  which_face(Coordinate(one_way[0],one_way[1],one_way[2]), root_i)
+#                print box_origin, box_extent
+#                print one_way
                 print 'which face: ', id1
 #                print which_face([63,127,31], [31, 63, 0], [32, 64, 63])
 #                print which_face([62,127,31], box_origin, box_extent)
@@ -1287,10 +1308,10 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                 counter1 = 0
                 list1 = []
                 
-#                other_way = inters[1]
+                other_way = inters[1]
 #                id2 = which_face(one_way, box_origin, box_extent)
-#                counter2 = 0
-#                list2 = []
+                counter2 = 0
+                list2 = []
 
                 
 
