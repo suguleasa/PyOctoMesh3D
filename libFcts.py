@@ -548,17 +548,82 @@ def find_neighbor(index,direction):
 
     return str("".join(llist_str))
   
-def find_neighbor_of(index, direction):
+def find_neighbor_of(index, direction, masterNode):
+    
+    root = get_node_by_id(masterNode, index)
+    p1,p2,p3,p4,p5,p6,p7,p8 = root.cube
+    
     if len(direction) == 1:
         # we only do one lookup pass through the table
+        
+        # check we are not going outside the image
+        if direction == 'L' and p1.x == 0:
+            return ""
+        if direction == 'R' and p2.x == root.imsize[0]:
+            return ""
+        if direction == 'F' and p4.y == root.imsize[1]:
+            return ""
+        if direction == 'B' and p1.y == 0:
+            return ""
+        if direction == 'D' and p5.z == root.imsize[2]:
+            return ""
+        if direction == 'U' and p1.z == 0:
+            return ""
+                
         return find_neighbor(index,direction)
     if len(direction) == 2:
         # we do two passes through the table
+        
+        # check we are not going outside the image
+        if direction == 'LF' and p1.x == 0 and  p4.y == root.imsize[1]:
+            return ""
+        if direction == 'RF' and p2.x == root.imsize[0] and p4.y == root.imsize[1]:
+            return ""
+        if direction == 'LB' and p1.x == 0 and p1.y == 0:
+            return ""
+        if direction == 'RB' and p2.x == root.imsize[0] and p1.y == 0:
+            return ""
+        if direction == 'UF' and p1.z == 0 and p4.y == root.imsize[1]:
+            return ""
+        if direction == 'DF' and p5.z == root.imsize[2] and p4.y == root.imsize[1]:
+            return ""
+        if direction == 'UB' and p1.z == 0 and p1.y == 0:
+            return ""
+        if direction == 'DB' and p5.z == root.imsize[2] and p1.y == 0:
+            return ""
+        if direction == 'RU' and p2.x == root.imsize[0] and p1.z == 0:
+            return ""
+        if direction == 'RD' and p2.x == root.imsize[0] and p5.z == root.imsize[2]:
+            return ""
+        if direction == 'LU' and p1.x == 0 and p1.z == 0:
+            return ""
+        if direction == 'LD' and p1.x == 0 and p5.z == root.imsize[2]:
+            return ""
+        
         pass1 = find_neighbor(index,direction[0])
         pass2 = find_neighbor(pass1,direction[1])
         return pass2
+    
     if len(direction) == 3:
         # we do three passes through the table
+        
+        # check we are not going outside the image
+        if direction == 'LUB' and p1.x == 0 and p1.z == 0 and p1.y == 0:
+            return ""
+        if direction == 'RUB' and p2.x == root.imsize[0] and p1.z == 0 and p1.y == 0:
+            return ""
+        if direction == 'LUF' and p1.x == 0 and p1.z == 0 and p4.y == root.imsize[1]:
+            return ""
+        if direction == 'RUF' and p2.x == root.imsize[0] and p1.z == 0 and p4.y == root.imsize[1]:
+            return ""
+        if direction == 'LDF' and p1.x == 0 and p5.z == root.imsize[2] and p4.y == root.imsize[1]:
+            return ""
+        if direction == 'RDF' and p2.x == root.imsize[0] and p5.z == root.imsize[2] and p4.y == root.imsize[1]:
+            return ""
+        if direction == 'LDB' and p1.x == 0 and p5.z == root.imsize[2] and p1.y == 0:
+            return ""
+        if direction == 'RDB' and p2.x == root.imsize[0] and p5.z == root.imsize[2] and p1.y == 0:
+            return ""
         pass1 = find_neighbor(index,direction[0])
         pass2 = find_neighbor(pass1,direction[1])
         pass3 = find_neighbor(pass2,direction[2])
@@ -626,8 +691,10 @@ def get_node_of_neighbor(root,my_ind,neigh_ind):
             
 def neigh_has_children(root, masterNode, direction): 
     
-    neigh_index = str(find_neighbor_of(root.index,direction))    
-    # checking to see if the west neighbor exists or is a ghost
+    neigh_index = str(find_neighbor_of(root.index,direction,masterNode)) 
+    if len(neigh_index)<1:
+        return False   
+    # checking to see if the neighbor exists or is a ghost
     if it_exists(neigh_index, masterNode):
         node_neighbor = get_node_of_neighbor(root, root.index, neigh_index)
         if node_neighbor.has_children == True:
@@ -743,7 +810,9 @@ def coords_not_equal(p1,p2):
     return 1
 def neigh_has_grandchildren(root, masterNode, direction, whichChildren): 
     
-    neigh_index = str(find_neighbor_of(root.index,direction))    
+    neigh_index = str(find_neighbor_of(root.index,direction,masterNode))    
+    if len(neigh_index) <1:
+        return False
     if it_exists(neigh_index, masterNode):
         node_neighbor = get_node_of_neighbor(root, root.index, neigh_index)
         if node_neighbor.has_children == True:
@@ -889,7 +958,7 @@ def k_neighbor_rule(tree, root,masterNode):
             
             # PART 2 constraint
             rb_has_children = neigh_has_children(root,masterNode,'RB')
-            if ( (rb_has_children and righ_has_children and back_has_children)
+            if ( (rb_has_children and right_has_children and back_has_children)
                 ):
                 # edge is nearly regular
                 k2_counter += 1
@@ -1244,7 +1313,6 @@ def stress_concentration_constraint(tree_list, masterNode, image):
     n = len(tree_list)
 
     full_list = []
-#     LIST = []
     
     # for each node in the tree:
     for i in range(0,n):
@@ -1293,26 +1361,174 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                 
 
                 inters = line_box_intersection(root_i, centroid, N)
-                box_origin = [p1.x,p1.y,p1.z]
-                box_extent = [dx,dy,dz]
+#                box_origin = [p1.x,p1.y,p1.z]
+#                box_extent = [dx,dy,dz]
+                
+                currentIndex1 = root_i.index
+                currentIndex2 = root_i.index
                 
                 one_way = inters[0]
-                id1 =  which_face(Coordinate(one_way[0],one_way[1],one_way[2]), root_i)
-#                print box_origin, box_extent
-#                print one_way
-                print 'which face: ', id1
-#                print which_face([63,127,31], [31, 63, 0], [32, 64, 63])
-#                print which_face([62,127,31], box_origin, box_extent)
-#                print which_face([62.9,127,31], box_origin, box_extent)
-                
+                which_dir1 =  which_face(Coordinate(one_way[0],one_way[1],one_way[2]), root_i)
                 counter1 = 0
                 list1 = []
+                list1.append(root_i.index)
                 
+
+                    
                 other_way = inters[1]
-#                id2 = which_face(one_way, box_origin, box_extent)
+                which_dir2 = which_face(Coordinate(other_way[0],other_way[1],other_way[2]), root_i)
                 counter2 = 0
                 list2 = []
+                list2.append(root_i.index)
+  
+  
+#                print 'root index:', root_i.index, which_dir1, which_dir2
+#                neigh_index1 = find_neighbor_of(currentIndex1, which_dir1, masterNode)
+#                neigh_index2 = find_neighbor_of(currentIndex2, which_dir2, masterNode)
+#                print neigh_index1, ' ererer', neigh_index2,'555555'
+                
+                new_inters1 = inters[0] 
+                while counter1 <= N_ELEMS:
+                    
+                    # find the index of the neighbor in the direction given by which_dir1
+                    neigh_index1 = find_neighbor_of(currentIndex1, which_dir1, masterNode)
+                    
+                    if len(neigh_index1) < 1:
+                        # we are going outside the image
+                        break
+                    
+                    # if the neighbor exists: either my size or 1/2 smaller
+                    if [str(neigh_index1)] in tree_list:
+                        # get the neighbor node
+                        neigh1 = get_node_by_id(masterNode,[str(neigh_index1)])
 
+                        # if it is 1/2 smaller
+                        if neigh1.has_children:
+                            
+                            # find out in which box is the intersection point:
+                            for ii in range(0,8):
+                                child_box_index1 = str(str(neigh_index1) + str(ii))
+                                child_box1 = get_node_by_id( masterNode, [str(child_box_index1)] )
+                                if in_child_k(child_box1.cube, Coordinate(new_inters1[0], new_inters1[1], new_inters1[2]) ):
+                                    new_box1 = child_box1
+                                    box_index1 = child_box_index1
+                                
+                        else: # same size with me
+                            box_index1 = str(neigh_index1)
+                            new_box1 = neigh1
+                    else: # the neighbor index doesn't exist, must be 2 times bigger
+                        box_index1 = str(neigh_index1[:-1])
+                        new_box1 = get_node_by_id(masterNode,[str(box_index1)])
+                     
+                    if not(new_box1.ishomog):
+                        #neighbor is non-homogeneous, add box_index to list and quit            
+                        list1.append(box_index1)
+                        break  
+                   
+                    else:
+                        # Neighbor is homogeneous 
+                                            
+                        # get the intersection points of the ray/line/normal with the new box
+                        inters_pts = line_box_intersection(new_box1, centroid, N)
+                        # if at the end of the image, then no intersection points:
+                        if len(inters_pts) < 1:
+                            list1.append(box_index1)
+                            break 
+                        
+                        inters1 = inters_pts[0]
+                        inters2 = inters_pts[1]
+                        # find out on which faces these intersection points lie
+                        id1_1 = which_face(Coordinate(inters1[0], inters1[1], inters1[2]), new_box1)
+                        id1_2 = which_face(Coordinate(inters2[0], inters2[1], inters2[2]), new_box1)
+                        
+                        # choose the direction not used for the new direction
+                        if opposite_direction(which_dir1) != id1_1:
+                            which_dir1 = id1_1
+                            new_inters1 = inters1
+                        else:
+                            which_dir1 = id1_2
+                            new_inters1 = inters2
+                        
+                        # currentIndex becomes that of the new box / neighbor
+                        currentIndex1 = str(box_index1)
+                        # add the new index to the list, since it is homogeneous
+                        list1.append(box_index1)
+                        counter1 += 1
+                 
+                full_list.append(list1)   
+                
+                new_inters2 = inters[1]
+                while counter2 <= N_ELEMS:
+                    
+                    # find the index of the neighbor in the direction given by which_dir1
+                    neigh_index2 = find_neighbor_of(currentIndex2, which_dir2, masterNode)
+                    
+                    if len(neigh_index2) < 1:
+                        # we are going outside the image
+                        break
+                    
+                    # if the neighbor exists: either my size or 1/2 smaller
+                    if [str(neigh_index2)] in tree_list:
+                        # get the neighbor node
+                        neigh2 = get_node_by_id(masterNode,[str(neigh_index2)])
+
+                        # if it is 1/2 smaller
+                        if neigh2.has_children:
+                            
+                            # find out in which box is the intersection point:
+                            for ii in range(0,8):
+                                child_box_index2 = str(str(neigh_index2) + str(ii))
+                                child_box2 = get_node_by_id( masterNode, [str(child_box_index2)] )
+                                if in_child_k(child_box2.cube, Coordinate(new_inters2[0], new_inters2[1], new_inters2[2]) ):
+                                    new_box2 = get_node_by_id( masterNode, [str(child_box_index2)] )
+                                    box_index2 = child_box_index2
+                        else: # same size with me
+                            box_index2 = str(neigh_index2)
+                            new_box2 = get_node_by_id(masterNode,[str(neigh_index2)])
+                    else: # the neighbor index doesn't exist, must be 2 times bigger
+                        box_index2 = str(neigh_index2[:-1])
+                        new_box2 = get_node_by_id(masterNode,[str(box_index2)])
+                    
+                      
+                    if not(new_box2.ishomog):
+                        #neighbor is non-homogeneous, add box_index to list and quit            
+                        list2.append(box_index2)
+                        break  
+                   
+                    else:
+                        # Neighbor is homogeneous 
+                        # get the intersection points of the ray/line/normal with the new box
+                        inters_pts = line_box_intersection(new_box2, centroid, N)
+                        # if at the end of the image, then no intersection points:
+                        if len(inters_pts) < 1:
+                            list2.append(box_index2)
+                            break  
+                        inters1 = inters_pts[0]
+                        inters2 = inters_pts[1]
+                        
+                        # find out on which faces these intersection points lie
+                        id2_1 = which_face(Coordinate(inters1[0], inters1[1], inters1[2]), new_box2)
+                        id2_2 = which_face(Coordinate(inters2[0], inters2[1], inters2[2]), new_box2)
+                        
+                        # choose the direction not used for the new direction
+                        if opposite_direction(which_dir2) != id2_1:
+                            which_dir2 = id2_1
+                            new_inters2 = inters1
+                        else:
+                            which_dir2 = id2_2
+                            new_inters2 = inters2
+                        # currentIndex becomes that of the new box / neighbor
+                        currentIndex2 = str(box_index2)
+                        # add the new index to the list, since it is homogeneous
+                        list2.append(box_index2)
+                                    
+                    
+                    counter2 += 1
+
+                full_list.append(list2)
+      
+    print full_list          
+    return full_list
                 
 
 def divide_high_stress_elements(full_list, masterNode,image):
@@ -1321,17 +1537,19 @@ def divide_high_stress_elements(full_list, masterNode,image):
     extra_list = []
     for k in range(0, len(full_list)):
         llist = full_list[k]
-        
         if len(llist) < STRESS_MIN + 2:
             last_index = str(llist[-1])
             last_node = get_node_by_id(masterNode, [str(last_index)])
-            if not(last_node.ishomog): 
-            
+            print len(last_node.enrichNodes)
+#            if not(last_node.ishomog):
+            if len(last_node.enrichNodes)>0: 
                 if len(llist) == 2:
                     node1 = get_node_by_id(masterNode, [str(llist[0])])
+                    print node1.has_children
                     node1.divideOnce()
                     node2 = get_node_by_id(masterNode, [str(llist[1])])
                     node2.divideOnce()
+                    print node1.has_children
                 if len(llist) == 2 + 1:
     #                 print 'only one homog elem in between'
                     node1 = get_node_by_id(masterNode, [str(llist[1])])
@@ -1362,6 +1580,10 @@ def divide_high_stress_elements(full_list, masterNode,image):
         node1.children[1].divideOnce()
         node1.children[2].divideOnce()
         node1.children[3].divideOnce()
+        node1.children[4].divideOnce()
+        node1.children[5].divideOnce()
+        node1.children[6].divideOnce()
+        node1.children[7].divideOnce()
                     
 
 def set_homog(masterNode,llist):

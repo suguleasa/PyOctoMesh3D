@@ -22,3 +22,7 @@ MIN_SIZE_Z = 64
 # K-neighbor rule
 k1_CONST = 5
 k2_CONST = 2
+
+# minimum number of elements between two interfaces
+N_ELEMS = 4
+STRESS_MIN = 4

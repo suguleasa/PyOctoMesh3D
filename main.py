@@ -4,7 +4,7 @@ from libFcts import *
 from globalVars import *
 # import dicom
 import scipy
-import external.transformations as tf
+#import external.transformations as tf
   
 LIST = []      
 class Node():
@@ -999,50 +999,67 @@ if __name__ == "__main__":
     masterNode = rootNode
     
 
-#     totalNumberOfNodes = tree.count_nodes(rootNode)
-#     newTotalNumberOfNodes = -1
-#     print totalNumberOfNodes
-#          
-#     while totalNumberOfNodes != newTotalNumberOfNodes:
-#         print 'Rebalancing tree by multiple passes '
-#         masterNode = rootNode
-#         totalNumberOfNodes = newTotalNumberOfNodes
-#         tree_balance(tree,rootNode,masterNode)
-#         newTotalNumberOfNodes = tree.count_nodes(rootNode)
-#  
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    newTotalNumberOfNodes = -1
+    print totalNumberOfNodes
+         
+#    while totalNumberOfNodes != newTotalNumberOfNodes:
+#        print 'Rebalancing tree by multiple passes '
+#        masterNode = rootNode
+#        totalNumberOfNodes = newTotalNumberOfNodes
+#        tree_balance(tree,rootNode,masterNode)
+#        newTotalNumberOfNodes = tree.count_nodes(rootNode)
+# 
+#    
+#    masterNode = rootNode
+#    totalNumberOfNodes = tree.count_nodes(rootNode)
+#    newTotalNumberOfNodes = -1
 #     
-#     masterNode = rootNode
-#     totalNumberOfNodes = tree.count_nodes(rootNode)
-#     newTotalNumberOfNodes = -1
+#    print totalNumberOfNodes
+#
+#
+#    while totalNumberOfNodes != newTotalNumberOfNodes:
+#         print 'k neighbor rule'
+#         totalNumberOfNodes = newTotalNumberOfNodes
+#         masterNode = rootNode
+#         k_neighbor_rule(tree, rootNode, masterNode)
+#         newTotalNumberOfNodes = tree.count_nodes(rootNode)
 #      
-#     print totalNumberOfNodes
-# 
-# 
-#     while totalNumberOfNodes != newTotalNumberOfNodes:
-#          print 'k neighbor rule'
-#          totalNumberOfNodes = newTotalNumberOfNodes
-#          masterNode = rootNode
-#          k_neighbor_rule(tree, rootNode, masterNode)
-#          newTotalNumberOfNodes = tree.count_nodes(rootNode)
-#       
-#     print 'total number of element nodes', newTotalNumberOfNodes
+#    print 'total number of element nodes', newTotalNumberOfNodes
     
     masterNode = rootNode
     
     llist = []
     tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
     
+#    print it_exists(['002'], masterNode), it_exists(['003'], masterNode)
     
-    print "Applying the high stress concentration constraint"
-    full_list = stress_concentration_constraint(tree_list_of_nodes, rootNode,outputImage)
-#     divide_high_stress_elements(full_list,rootNode, outputImage)
-    
-    masterNode = rootNode
+#    print tree_list_of_nodes
+#    print '002' in tree_list_of_nodes
+#    print ['002'] in tree_list_of_nodes
+#    for i in range(0, len(tree_list_of_nodes)):
+#        print tree_list_of_nodes[i]
 
+
+#    rt = get_node_by_id(rootNode,['012'])
+#    rt2 = find_neighbor_of(rt.index,'R', masterNode)
+#    print rt.index, rt2
+          
+    print len(tree_list_of_nodes)  
+    print "Applying the high stress concentration constraint"
+    full_list = stress_concentration_constraint(tree_list_of_nodes, masterNode,outputImage)
+    divide_high_stress_elements(full_list,rootNode, outputImage)
+    
+    masterNode = rootNode
+    
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    newTotalNumberOfNodes = -1
+    print totalNumberOfNodes
+    
     llist = []
     tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
     
-    
+    print len(tree_list_of_nodes)
     draw_interface(outputImage, inputImage, tree_list_of_nodes, masterNode)
     
     print 'writing the image out'
@@ -1050,9 +1067,6 @@ if __name__ == "__main__":
 
 
 
-#    rt = get_node_by_id(rootNode,['132'])
-#    rt2 = find_neighbor_of(rt.index,'F')
-#    print rt.index, rt2
 #
 #    rt = get_node_by_id(rootNode,['301'])
 #    rt2 = find_neighbor_of(rt.index,'RU')
