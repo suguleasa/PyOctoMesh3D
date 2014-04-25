@@ -6,6 +6,7 @@ from numpy import *
 import scipy
 import numpy
 from bresenham import *
+import types
 
 
 D = {}
@@ -1000,7 +1001,7 @@ def k_neighbor_rule(tree, root,masterNode):
             
                 
             uf_has_children = neigh_has_children(root,masterNode,'UF')
-            if ( (uf_has_children and up_has_children and  front_has_chidren)
+            if ( (uf_has_children and up_has_children and  front_has_children)
                   ):
                 # edge is nearly regular
                 k2_counter += 1
@@ -1224,6 +1225,9 @@ def which_face(L, root):
         z2 = p5.z
         surface_name = []
 
+        L.x = int(L.x)
+        L.y = int(L.y)
+        L.z = int(L.z)
         if L.x == x1:
             surface_name.append('L')
         if L.x == x2:
@@ -1328,7 +1332,8 @@ def stress_concentration_constraint(tree_list, masterNode, image):
             z_list_c = []
             for j in range(0, len(root_i.enrichNodes)):
                 L = root_i.enrichNodes[j] 
-                L = L[0]
+                if isinstance(L,list):
+                    L = L[0]
                 x_list_c.append(L.x)
                 y_list_c.append(L.y)
                 z_list_c.append(L.z)
@@ -1363,9 +1368,13 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                 inters = line_box_intersection(root_i, centroid, N)
 #                box_origin = [p1.x,p1.y,p1.z]
 #                box_extent = [dx,dy,dz]
-                
+                if len(inters)<2:
+                    break
                 currentIndex1 = root_i.index
                 currentIndex2 = root_i.index
+                
+                print 'intersection points are: ', inters, len(inters)
+                root_i.printcube()
                 
                 one_way = inters[0]
                 which_dir1 =  which_face(Coordinate(one_way[0],one_way[1],one_way[2]), root_i)
@@ -1382,17 +1391,17 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                 list2.append(root_i.index)
   
   
-#                print 'root index:', root_i.index, which_dir1, which_dir2
-#                neigh_index1 = find_neighbor_of(currentIndex1, which_dir1, masterNode)
-#                neigh_index2 = find_neighbor_of(currentIndex2, which_dir2, masterNode)
-#                print neigh_index1, ' ererer', neigh_index2,'555555'
+                print 'root index:', root_i.index, 'dir1', which_dir1, 'dir2',which_dir2
+                neigh_index1 = find_neighbor_of(currentIndex1, which_dir1, masterNode)
+                neigh_index2 = find_neighbor_of(currentIndex2, which_dir2, masterNode)
+                print neigh_index1, ' ererer', neigh_index2,'555555'
                 
                 new_inters1 = inters[0] 
                 while counter1 <= N_ELEMS:
                     
                     # find the index of the neighbor in the direction given by which_dir1
                     neigh_index1 = find_neighbor_of(currentIndex1, which_dir1, masterNode)
-                    
+                    print 'neigh index 1 inside while', neigh_index1 
                     if len(neigh_index1) < 1:
                         # we are going outside the image
                         break
@@ -1431,7 +1440,7 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                         # get the intersection points of the ray/line/normal with the new box
                         inters_pts = line_box_intersection(new_box1, centroid, N)
                         # if at the end of the image, then no intersection points:
-                        if len(inters_pts) < 1:
+                        if len(inters_pts) < 2:
                             list1.append(box_index1)
                             break 
                         
@@ -1500,9 +1509,10 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                         # get the intersection points of the ray/line/normal with the new box
                         inters_pts = line_box_intersection(new_box2, centroid, N)
                         # if at the end of the image, then no intersection points:
-                        if len(inters_pts) < 1:
+                        if len(inters_pts) < 2:
                             list2.append(box_index2)
                             break  
+#                        print len(inters_pts)
                         inters1 = inters_pts[0]
                         inters2 = inters_pts[1]
                         
@@ -1527,11 +1537,11 @@ def stress_concentration_constraint(tree_list, masterNode, image):
 
                 full_list.append(list2)
       
-    print full_list          
+#    print full_list          
     return full_list
                 
 
-def divide_high_stress_elements(full_list, masterNode,image):
+def divide_high_stress_elements(full_list, masterNode, tree_list_of_nodes):
     # processing the list with elements in between interfaces
     
     extra_list = []
@@ -1539,17 +1549,25 @@ def divide_high_stress_elements(full_list, masterNode,image):
         llist = full_list[k]
         if len(llist) < STRESS_MIN + 2:
             last_index = str(llist[-1])
+#            
+#            print last_index
+#            print llist
+#            print full_list
+            nodee = get_node_by_id(masterNode, ['0160'])
+#            print it_exists(['0160'], masterNode)
+#            print 'Enrich Node 0160 exists:',nodee.enrichNodes
+    
             last_node = get_node_by_id(masterNode, [str(last_index)])
-            print len(last_node.enrichNodes)
+#            last_node.printcube()
+
+#            print 'are there any?',last_node.enrichNodes
 #            if not(last_node.ishomog):
-            if len(last_node.enrichNodes)>0: 
+            if [str(last_index)] in tree_list_of_nodes and len(last_node.enrichNodes)>0: 
                 if len(llist) == 2:
                     node1 = get_node_by_id(masterNode, [str(llist[0])])
-                    print node1.has_children
                     node1.divideOnce()
                     node2 = get_node_by_id(masterNode, [str(llist[1])])
                     node2.divideOnce()
-                    print node1.has_children
                 if len(llist) == 2 + 1:
     #                 print 'only one homog elem in between'
                     node1 = get_node_by_id(masterNode, [str(llist[1])])

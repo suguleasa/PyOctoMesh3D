@@ -307,63 +307,75 @@ class Node():
                     L1 = L1[0]
                     if in_child_k(cubes[n],L1) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L1]
+                        self.children[n].ishomog = 0
                     list_enrichNodes.append([L1])
                 if len(L2) == 1:
                     L2 = L2[0]
                     if in_child_k(cubes[n],L2) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L2]
+                        self.children[n].ishomog = 0
                     list_enrichNodes.append([L2])
                 if len(L3) == 1:
                     L3 = L3[0]
                     if in_child_k(cubes[n],L3) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L3]
+                        self.children[n].ishomog = 0
                     list_enrichNodes.append([L3])
                 if len(L4) == 1:
                     L4 = L4[0]
                     if in_child_k(cubes[n],L4) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L4]
+                        self.children[n].ishomog = 0
                     list_enrichNodes.append([L4])
                         
                 if len(L5) == 1:
                     L5 = L5[0]
                     if in_child_k(cubes[n],L5) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L5]
+                        self.children[n].ishomog = 0
                     list_enrichNodes.append([L5])
                 if len(L6) == 1:
                     L6 = L6[0]
                     if in_child_k(cubes[n],L6) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L6]
+                        self.children[n].ishomog = 0
                     list_enrichNodes.append([L6])
                 if len(L7) == 1:
                     L7 = L7[0]
                     if in_child_k(cubes[n],L7) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L7]
+                        self.children[n].ishomog = 0
                     list_enrichNodes.append([L7])
                 if len(L8) == 1:
                     L8 = L8[0]
                     if in_child_k(cubes[n],L8) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L8]
+                        self.children[n].ishomog = 0
                     list_enrichNodes.append([L8])
                         
                 if len(L9) == 1:
                     L9 = L9[0]
                     if in_child_k(cubes[n],L9) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L9]
+                        self.children[n].ishomog = 0
                     list_enrichNodes.append([L9])
                 if len(L10) == 1:
                     L10 = L10[0]
                     if in_child_k(cubes[n],L10) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L10]
+                        self.children[n].ishomog = 0
                     list_enrichNodes.append([L10])
                 if len(L11) == 1:
                     L11 = L11[0]
                     if in_child_k(cubes[n],L11) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L11]
+                        self.children[n].ishomog = 0
                     list_enrichNodes.append([L11])
                 if len(L12) == 1:
                     L12 = L12[0]
                     if in_child_k(cubes[n],L12) == True:
                         self.children[n].enrichNodes = self.children[n].enrichNodes + [L12]
+                        self.children[n].ishomog = 0
                     list_enrichNodes.append([L12])                                
             
                 self.children[n].enrichNodes = list_enrichNodes
@@ -656,7 +668,8 @@ class CNode(Node):
                             for i in range(0,len(x_list_c)):
                                 vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
                             self.enrichNodes = vecCoord 
-                            print 'inside residual approx', len(self.enrichNodes)
+                            self.ishomog = 0
+#                            print 'inside residual approx', len(self.enrichNodes)
 
 #                            return False  
                         
@@ -953,56 +966,56 @@ if __name__ == "__main__":
     print "Reading image in..."
     inputImage = sitk.ReadImage("dataset/fibers_512x256.dcm")
     outputImage = sitk.ReadImage("dataset/fibers_512x256.dcm")
-#    inputImage = sitk.ReadImage("dataset/channels_512.dcm")
-#    outputImage = sitk.ReadImage("dataset/channels_512.dcm")
+#    inputImage = sitk.ReadImage("dataset/channels_512x256.dcm")
+#    outputImage = sitk.ReadImage("dataset/channels_512x256.dcm")
 
 
-#    sitk.WriteImage(inputImage,"dataset/orig_mesh.vtk");
+    sitk.WriteImage(inputImage,"dataset/orig_mesh_fibers512x256.vtk");
     
-    nameOutputImage = "dataset/out_fibers_mesh_constraint1.vtk"
-#    nameOutputImage = "dataset/out_mesh.vtk" 
- 
-    
-    imageSize = inputImage.GetSize()
-    print "Image size:", imageSize
-
-     
-    # setting the 4 corners coordinates
-    p1 = Coordinate(0,0,0)
-    p2 = Coordinate(imageSize[0]-1,0,0)
-    p3 = Coordinate(imageSize[0]-1,imageSize[1]-1,0)
-    p4 = Coordinate(0,imageSize[1]-1,0)
-    p5 = Coordinate(0,0,imageSize[2]-1)
-    p6 = Coordinate(imageSize[0]-1,0,imageSize[2]-1)
-    p7 = Coordinate(imageSize[0]-1,imageSize[1]-1,imageSize[2]-1)
-    p8 = Coordinate(0,imageSize[1]-1,imageSize[2]-1)
-    
-    
-    cube = [p1,p2,p3,p4,p5,p6,p7,p8]
-    rootNode = CNode(None,cube,inputImage,outputImage,imageSize)
-    tree = COctoTree(rootNode)
-    
-    masterNode = CNode(None,cube,inputImage,outputImage,imageSize)
-    
-    masterNode = rootNode
-
-    totalNumberOfNodes = tree.count_nodes(rootNode)
-    print totalNumberOfNodes
-    newTotalNumberOfNodes = -1
-    while totalNumberOfNodes != newTotalNumberOfNodes:
-         print 'No enrichment nodes and hanging nodes in the same element '
-         totalNumberOfNodes = newTotalNumberOfNodes
-         masterNode = rootNode
-         ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
-         newTotalNumberOfNodes = tree.count_nodes(rootNode)
-         
-    masterNode = rootNode
-    
-
-    totalNumberOfNodes = tree.count_nodes(rootNode)
-    newTotalNumberOfNodes = -1
-    print totalNumberOfNodes
-         
+#    nameOutputImage = "dataset/outChannels256-AllConstr.vtk"
+##    nameOutputImage = "dataset/out_mesh.vtk" 
+# 
+#    
+#    imageSize = inputImage.GetSize()
+#    print "Image size:", imageSize
+#
+#     
+#    # setting the 4 corners coordinates
+#    p1 = Coordinate(0,0,0)
+#    p2 = Coordinate(imageSize[0]-1,0,0)
+#    p3 = Coordinate(imageSize[0]-1,imageSize[1]-1,0)
+#    p4 = Coordinate(0,imageSize[1]-1,0)
+#    p5 = Coordinate(0,0,imageSize[2]-1)
+#    p6 = Coordinate(imageSize[0]-1,0,imageSize[2]-1)
+#    p7 = Coordinate(imageSize[0]-1,imageSize[1]-1,imageSize[2]-1)
+#    p8 = Coordinate(0,imageSize[1]-1,imageSize[2]-1)
+#    
+#    
+#    cube = [p1,p2,p3,p4,p5,p6,p7,p8]
+#    rootNode = CNode(None,cube,inputImage,outputImage,imageSize)
+#    tree = COctoTree(rootNode)
+#    
+#    masterNode = CNode(None,cube,inputImage,outputImage,imageSize)
+#    
+#    masterNode = rootNode
+#
+#    totalNumberOfNodes = tree.count_nodes(rootNode)
+#    print totalNumberOfNodes
+#    newTotalNumberOfNodes = -1
+#    while totalNumberOfNodes != newTotalNumberOfNodes:
+#         print 'No enrichment nodes and hanging nodes in the same element '
+#         totalNumberOfNodes = newTotalNumberOfNodes
+#         masterNode = rootNode
+#         ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
+#         newTotalNumberOfNodes = tree.count_nodes(rootNode)
+#         
+#    masterNode = rootNode
+#    
+#
+#    totalNumberOfNodes = tree.count_nodes(rootNode)
+#    newTotalNumberOfNodes = -1
+#    print totalNumberOfNodes
+#         
 #    while totalNumberOfNodes != newTotalNumberOfNodes:
 #        print 'Rebalancing tree by multiple passes '
 #        masterNode = rootNode
@@ -1026,53 +1039,103 @@ if __name__ == "__main__":
 #         newTotalNumberOfNodes = tree.count_nodes(rootNode)
 #      
 #    print 'total number of element nodes', newTotalNumberOfNodes
-    
-    masterNode = rootNode
-    
-    llist = []
-    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
-    
-#    print it_exists(['002'], masterNode), it_exists(['003'], masterNode)
-    
-#    print tree_list_of_nodes
-#    print '002' in tree_list_of_nodes
-#    print ['002'] in tree_list_of_nodes
-#    for i in range(0, len(tree_list_of_nodes)):
-#        print tree_list_of_nodes[i]
-
-
-#    rt = get_node_by_id(rootNode,['012'])
-#    rt2 = find_neighbor_of(rt.index,'R', masterNode)
-#    print rt.index, rt2
-          
-    print len(tree_list_of_nodes)  
-    print "Applying the high stress concentration constraint"
-    full_list = stress_concentration_constraint(tree_list_of_nodes, masterNode,outputImage)
-    divide_high_stress_elements(full_list,rootNode, outputImage)
-    
-    masterNode = rootNode
-    
-    totalNumberOfNodes = tree.count_nodes(rootNode)
-    newTotalNumberOfNodes = -1
-    print totalNumberOfNodes
-    
-    llist = []
-    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
-    
-    print len(tree_list_of_nodes)
-    draw_interface(outputImage, inputImage, tree_list_of_nodes, masterNode)
-    
-    print 'writing the image out'
-    sitk.WriteImage(outputImage,nameOutputImage);
-
-
-
+#    
+#    masterNode = rootNode
+#    
+#    llist = []
+#    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
+#    
+##    print it_exists(['002'], masterNode), it_exists(['003'], masterNode)
+#    
+##    print tree_list_of_nodes
+##    print '002' in tree_list_of_nodes
+##    print ['002'] in tree_list_of_nodes
+##    for i in range(0, len(tree_list_of_nodes)):
+##        print tree_list_of_nodes[i]
 #
-#    rt = get_node_by_id(rootNode,['301'])
-#    rt2 = find_neighbor_of(rt.index,'RU')
-#    print rt.index, rt2
+#
+#    rt = get_node_by_id(rootNode,['0107'])
+#    rt2 = find_neighbor_of(rt.index,'F', masterNode)
+#    rt3 = find_neighbor_of(rt.index,'L', masterNode)
+#    print rt.index, rt2, rt3
+#    rt.printcube()
+#    
+#    
+#    rt = get_node_by_id(rootNode,['0103'])
+#    rt.printcube()
+#    rt2 = find_neighbor_of(rt.index,'F', masterNode)
+#    print 'rt2', rt2
+#    
+#    print "Applying the high stress concentration constraint"
+#    full_list = stress_concentration_constraint(tree_list_of_nodes, masterNode,outputImage)
+#    masterNode = rootNode
+#    divide_high_stress_elements(full_list,rootNode, tree_list_of_nodes)
+#    
+#    masterNode = rootNode
+#    totalNumberOfNodes = tree.count_nodes(rootNode)
+#    print totalNumberOfNodes
+#    newTotalNumberOfNodes = -1
+#    while totalNumberOfNodes != newTotalNumberOfNodes:
+#         print 'No enrichment nodes and hanging nodes in the same element '
+#         totalNumberOfNodes = newTotalNumberOfNodes
+#         masterNode = rootNode
+#         ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
+#         newTotalNumberOfNodes = tree.count_nodes(rootNode)
+#         
+#    masterNode = rootNode
+#    
+#
+#    totalNumberOfNodes = tree.count_nodes(rootNode)
+#    newTotalNumberOfNodes = -1
+#    print totalNumberOfNodes
+#         
+#    while totalNumberOfNodes != newTotalNumberOfNodes:
+#        print 'Rebalancing tree by multiple passes '
+#        masterNode = rootNode
+#        totalNumberOfNodes = newTotalNumberOfNodes
+#        tree_balance(tree,rootNode,masterNode)
+#        newTotalNumberOfNodes = tree.count_nodes(rootNode)
+# 
+#    
+#    masterNode = rootNode
+#    totalNumberOfNodes = tree.count_nodes(rootNode)
+#    newTotalNumberOfNodes = -1
+#     
+#    print totalNumberOfNodes
+#
+#
+#    while totalNumberOfNodes != newTotalNumberOfNodes:
+#         print 'k neighbor rule'
+#         totalNumberOfNodes = newTotalNumberOfNodes
+#         masterNode = rootNode
+#         k_neighbor_rule(tree, rootNode, masterNode)
+#         newTotalNumberOfNodes = tree.count_nodes(rootNode)
+#      
+#    print 'total number of element nodes', newTotalNumberOfNodes
+#    
+#    masterNode = rootNode
+#    
+#    totalNumberOfNodes = tree.count_nodes(rootNode)
+#    newTotalNumberOfNodes = -1
+#    print totalNumberOfNodes
+#    
+#    llist = []
+#    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
+#    
+#    print len(tree_list_of_nodes)
+#    draw_interface(outputImage, inputImage, tree_list_of_nodes, masterNode)
+#    
+#    print 'writing the image out'
+#    sitk.WriteImage(outputImage,nameOutputImage);
+#
+#
+#
 ##
-#
-#    rt = get_node_by_id(rootNode,['301'])
-#    rt2 = find_neighbor_of(rt.index,'RUF')
-#    print rt.index, rt2   
+##    rt = get_node_by_id(rootNode,['301'])
+##    rt2 = find_neighbor_of(rt.index,'RU')
+##    print rt.index, rt2
+###
+##
+##    rt = get_node_by_id(rootNode,['301'])
+##    rt2 = find_neighbor_of(rt.index,'RUF')
+##    print rt.index, rt2   

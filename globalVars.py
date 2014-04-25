@@ -13,11 +13,11 @@ TOL_error = 3
 VAL = 1
 
 MAX_SIZE_X = 64   
-MIN_SIZE_X = 64
+MIN_SIZE_X = 16
 MAX_SIZE_Y = 64    
-MIN_SIZE_Y = 64
+MIN_SIZE_Y = 16
 MAX_SIZE_Z = 64
-MIN_SIZE_Z = 64
+MIN_SIZE_Z = 16
 
 # K-neighbor rule
 k1_CONST = 5
