@@ -105,6 +105,12 @@ class Coordinate(object):
         self.z = z
         self.all = [x,y,z]
 
+class Coordinate2D(object):
+    def __init__(self,x=-1,y=-1):
+        self.x = x
+        self.y = y
+        self.all = [x,y]
+        
 #class Box(object):
 #    def __init__(self, origin=(0,0,0), extent=(1,1,1), vmin, vmax):
 #        self.origin = origin
@@ -359,6 +365,24 @@ def ends_in_same_bin(image, p1, p2):
     
     return (val1 or val2)
 
+## Check if the ends of a line are from the same bin
+def ends_in_same_bin_2d(image, p1, p2, same_x, same_y, same_z, L):
+    if same_x == True:
+        pxVal1 = image.GetPixel(L.x, int(p1.x), int(p1.y))
+        pxVal2 = image.GetPixel(L.x, int(p2.x), int(p2.y))
+        
+    if same_y == True:
+        pxVal1 = image.GetPixel(int(p1.x), L.y, int(p1.y))
+        pxVal2 = image.GetPixel(int(p2.x), L.y, int(p2.y))
+        
+    if same_z == True:
+        pxVal1 = image.GetPixel(int(p1.x), int(p1.y), L.z)
+        pxVal2 = image.GetPixel(int(p2.x), int(p2.y), L.z)
+        
+    val1 = pxVal1 == pxVal2
+    val2 = is_in_same_bin(pxVal1, pxVal2)
+    return (val1 or val2)
+
 def linear_search(image,bbegin,eend):
         
         list_nodes = []
@@ -471,6 +495,7 @@ def draw_plane_connections(image, l1,l2,l3,l4, L1,L2,L3,L4):
     if l3 == 0 and l4 == 0 and l1 == 1 and l2 == 1:
         if coords_not_equal(L3[0],L4[0]):
             draw_line(image,L3[0],L4[0])
+
     
 def set_interval(imSize,level):
     my_arr = [0,imSize-1]
@@ -1613,3 +1638,591 @@ def set_homog(masterNode,llist):
         if len(root.enrichNodes)>1:
             print root.index
                                             
+def Nurbs_control_points(Q):
+    R = numpy.matrix([[1.0, 0.0, 0.0, 0.0],[ 1.0/9.0, 2.0/3.0, 2.0/9.0, 0.0 ], [  0.0, 2.0/9.0, 2.0/3.0, 1.0/9.0],[ 0.0, 0.0, 0.0, 1.0] ] )
+    Q = numpy.matrix( [ [Q[0][0], Q[0][1]], [Q[1][0], Q[1][1]], [Q[2][0], Q[2][1]], [Q[3][0], Q[3][1]] ])
+    
+    P = numpy.linalg.solve(R,Q)
+    return P
+
+def Nurbs_basis_fcts(t,P):
+    
+#    n = len(t)
+#    for i in range(0,n):
+    if t < 1.0/2.0:
+        N = lambda t: P[0] * (1 - 2 * t) * (1 - 2 * t) + P[1] * 2 * t * (2 - 3 * t) + P[2] * 2 * t * t
+    else:
+        N = lambda t: P[1] * 2 * (1 - t) * (1 - t) + P[2] * (8*t - 6*t*t - 2) + P[3] * (2*t - 1) * (2*t -1) 
+    return N
+
+def Nurbs_NW_case(image,p1,p2,p3,p4,L1,L4, same_x, same_y, same_z, L):
+    
+    x_is_F_of_y = False
+    
+    if (abs(L1.x-p1.x) < abs(L4.y - p1.y)):
+        x_is_F_of_y = True
+    else:
+        x_is_F_of_y = False
+    
+    if (x_is_F_of_y == False):
+        
+        # Step 1. Search for the interface along vertical lines at 1/3 and 2/3
+        p1third12 = Coordinate2D( double ((L1.x - p1.x) / 3.0) + p1.x, p1.y);
+        p1third34 = Coordinate2D( p1third12.x, p4.y);
+        E = log_search_2d(image,p1third12,p1third34, same_x, same_y, same_z, L);
+#        print len(E)
+#        E = E[0]
+        
+        p2thirds12 = Coordinate2D( double (2.0 * (L1.x - p1.x) / 3.0) + p1.x, p1.y);
+        p2thirds34 = Coordinate2D(p2thirds12.x, p4.y);
+        F = log_search_2d(image,p2thirds12,p2thirds34, same_x, same_y, same_z, L);
+#        F = F[0]
+        
+        # Step 2. Build the sample points vector   
+        Q = [ [L4.x, L4.y], [E.x, E.y], [F.x, F.y], [L1.x, L1.y]]
+        
+        # Step 3. Determine the control points
+        P = Nurbs_control_points(Q)
+        
+#        N = Nurbs_basis_fcts(1.0/3.0,P)
+#        pt1 =  N(1.0/3.0)
+#        pt1 = Coordinate2D(pt1[0,0], pt1[0,1])
+#        
+#        N = Nurbs_basis_fcts(2.0/3.0,P)
+#        pt2 = N(2.0/3.0)
+#        pt2 = Coordinate2D(pt2[0,0], pt2[0,1])
+#                    
+        t_step = 1.0 / abs(L1.x-p1.x)
+        
+        # Step 4. Search for the interface along a vertical line
+        p12 = Coordinate2D( (p1.x + L1.x)/2.0, p1.y)
+        p34 = Coordinate2D( p12.x, p4.y)
+        C = log_search_2d(image,p12,p34, same_x, same_y, same_z, L)
+         
+        Nx = Nurbs_basis_fcts(0.5,P[:,0])
+        Ny = Nurbs_basis_fcts(0.5,P[:,1])
+        NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
+               
+    else:
+        
+        # Step 1. Search for the interface along horizontal lines at 1/3 and 2/3
+        p1third14 = Coordinate2D( p1.x, float ((L4.y - p1.y) / 3.0) + p1.y);
+        p1third23 = Coordinate2D( p2.x, p1third14.y);
+        E = log_search_2d(image,p1third14,p1third23, same_x, same_y, same_z, L);
+        
+        p2thirds14 = Coordinate2D( p1.x, float (2.0 * (L4.y - p1.y) / 3.0) + p1.y);
+        p2thirds23 = Coordinate2D( p2.x, p2thirds14.y);
+        F = log_search_2d(image,p2thirds14,p2thirds23, same_x, same_y, same_z, L);
+
+        # Step 2. Build the sample points vector   
+        Q = [ [L4.y, L4.x], [F.y, F.x], [E.y, E.x], [L1.y, L1.x]]
+        
+        # Step 3. Determine the control points
+        P = Nurbs_control_points(Q)
+
+        t_step = 1.0 / abs(L4.y - p1.y)
+        
+        # Step 4. Search for the interface along a vertical line
+        p14 = Coordinate2D( p1.x, (p1.y + L4.y) / 2.0 )
+        p23 = Coordinate2D( p2.x, p14.y )
+        C = log_search_2d(image,p14,p23, same_x, same_y, same_z, L)
+        
+        Nx = Nurbs_basis_fcts(0.5,P[:,1])
+        Ny = Nurbs_basis_fcts(0.5,P[:,0])
+        NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
+        
+#    return [t,P,x_is_F_of_y]
+
+    t = arange(0, 1+t_step, t_step)
+    
+    if find_distance2D(C,NC) <= TOL_NURBS:
+        return [t,P,x_is_F_of_y, True]
+    else:
+        return [t,P,x_is_F_of_y, False]
+
+
+def Nurbs_NE_case(image,p1,p2,p3,p4,L1,L2, same_x, same_y, same_z, L):
+    
+    x_is_F_of_y = False
+        
+    if (abs(p2.x-L1.x) < abs(L2.y - p2.y)):
+        x_is_F_of_y = True;
+    else:
+        x_is_F_of_y = False;
+
+    if( x_is_F_of_y == False):
+        # Step 1. Search for the interface along vertical lines at 1/3 and 2/3
+        p1third12 = Coordinate2D( float ((p2.x - L1.x) / 3.0) + L1.x, p1.y);
+        p1third34 = Coordinate2D( p1third12.x, p4.y );
+        E = log_search_2d(image,p1third12,p1third34, same_x, same_y, same_z, L);
+
+        p2thirds12  = Coordinate2D( float (2.0 * (p2.x - L1.x) / 3.0) + L1.x, p1.y);
+        p2thirds34 = Coordinate2D( p2thirds12.x, p4.y);
+        F = log_search_2d(image,p2thirds12,p2thirds34, same_x, same_y, same_z, L);
+        
+        # Step 2. Build the sample points vector   
+        Q = [ [L1.x, L1.y], [E.x, E.y], [F.x, F.y], [L2.x, L2.y]]
+        
+        # Step 3. Determine the control points
+        P = Nurbs_control_points(Q)
+        
+        t_step = 1.0 / abs(p2.x - L1.x)
+        
+        p12 = Coordinate2D( (L1.x + p2.x)/2.0, p2.y )
+        p34 = Coordinate2D( p12.x, p3.y )
+        C = log_search_2d(image, p12, p34, same_x, same_y, same_z, L)
+            
+        Nx = Nurbs_basis_fcts(0.5,P[:,0])
+        Ny = Nurbs_basis_fcts(0.5,P[:,1])
+        NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
+        
+        
+    else:
+        # Step 1. Search for the interface along horizontal lines at 1/3 and 2/3
+        p1third14 = Coordinate2D( p1.x, float((L2.y - p2.y) / 3.0) + p2.y );
+        p1third23 = Coordinate2D( p2.x, p1third14.y);
+        E = log_search_2d(image,p1third14,p1third23, same_x, same_y, same_z, L);
+
+        p2thirds14 = Coordinate2D( p1.x, float (2.0 * (L2.y - p2.y) / 3.0) + p2.y );
+        p2thirds23 = Coordinate2D( p2.x, p2thirds14.y );
+        F = log_search_2d(image,p2thirds14,p2thirds23, same_x, same_y, same_z, L);
+        
+        # Step 2. Build the sample points vector   
+        Q = [ [L1.y, L1.x], [E.y, E.x], [F.y, F.x], [L2.y, L2.x]]
+        
+        # Step 3. Determine the control points
+        P = Nurbs_control_points(Q)
+        
+        t_step = 1.0 / abs(L2.y - p2.y)
+        
+        p14 = Coordinate2D( p1.x, (p2.y + L2.y) / 2.0 )
+        p23 = Coordinate2D( p2.x, p14.y )
+        C = log_search_2d(image, p14, p23, same_x, same_y, same_z, L)
+            
+        Nx = Nurbs_basis_fcts(0.5,P[:,1])
+        Ny = Nurbs_basis_fcts(0.5,P[:,0])
+        NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
+        
+    
+    t = arange(0, 1+t_step, t_step)
+    
+    if find_distance2D(C,NC) <= TOL_NURBS:
+        return [t,P,x_is_F_of_y, True]
+    else:
+        return [t,P,x_is_F_of_y, False]
+    
+#    return [t,P,x_is_F_of_y]
+
+def Nurbs_SE_case(image,p1,p2,p3,p4,L2,L3, same_x, same_y, same_z, L):
+    
+    x_is_F_of_y = False
+    if( abs(L3.x - p3.x) < abs(p3.y - L2.y) ):
+        x_is_F_of_y = True;
+
+    else:
+        x_is_F_of_y = False;
+
+    if (x_is_F_of_y == False):
+        # Step 1. Search for the interface along vertical lines at 1/3 and 2/3
+        p1third12 = Coordinate2D( float ((p3.x - L3.x) / 3.0) + L3.x, p1.y);
+        p1third34 = Coordinate2D( p1third12.x, p4.y);
+        E = log_search_2d(image,p1third12,p1third34, same_x, same_y, same_z, L);
+
+        p2thirds12  = Coordinate2D( float (2.0 * (p3.x - L3.x) / 3.0) + L3.x, p1.y );
+        p2thirds34 = Coordinate2D( p2thirds12.x, p4.y );
+        F = log_search_2d(image,p2thirds12,p2thirds34, same_x, same_y, same_z, L);
+
+        # Step 2. Build the sample points vector   
+        Q = [ [L3.x, L3.y], [E.x, E.y], [F.x, F.y], [L2.x, L2.y]]
+        
+        # Step 3. Determine the control points
+        P = Nurbs_control_points(Q)
+        
+        t_step = 1.0 / abs(p3.x - L3.x)
+        
+        p12 = Coordinate2D( (L3.x + p3.x)/2.0, p2.y)
+        p34 = Coordinate2D( p12.x, p3.y)
+        C = log_search_2d(image,p12,p34, same_x, same_y, same_z, L)
+            
+        Nx = Nurbs_basis_fcts(0.5,P[:,0])
+        Ny = Nurbs_basis_fcts(0.5,P[:,1])
+        NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
+        
+    else:
+        # Step 1. Search for the interface along horizontal lines at 1/3 and 2/3
+        p1third14 = Coordinate2D( p1.x, float ((p3.y - L2.y) / 3.0) + L2.y );
+        p1third23 = Coordinate2D( p2.x, p1third14.y);
+        E = log_search_2d(image,p1third14,p1third23, same_x, same_y, same_z, L);
+
+        p2thirds14 = Coordinate2D( p1.x, float (2.0 * (p3.y - L2.y) / 3.0) + L2.y );
+        p2thirds23 = Coordinate2D( p2.x, p2thirds14.y );
+        F = log_search_2d(image,p2thirds14,p2thirds23, same_x, same_y, same_z, L);
+
+        # Step 2. Build the sample points vector   
+        Q = [ [L3.y, L3.x], [F.y, F.x], [E.y, E.x], [L2.y, L2.x]]
+        
+        # Step 3. Determine the control points
+        P = Nurbs_control_points(Q)
+    
+        t_step = 1.0 / abs(p3.y - L2.y)
+        
+        p14 = Coordinate2D( p4.x, (L2.y + p3.y) / 2.0 )
+        p23 = Coordinate2D( p3.x, p14.y)    
+        C = log_search_2d(image,p14,p23, same_x, same_y, same_z, L)
+            
+        Nx = Nurbs_basis_fcts(0.5,P[:,1])
+        Ny = Nurbs_basis_fcts(0.5,P[:,0])
+        NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
+    
+    t = arange(0, 1+t_step, t_step)
+    
+    if find_distance2D(C,NC) <= TOL_NURBS:
+        return [t,P,x_is_F_of_y, True]
+    else:
+        return [t,P,x_is_F_of_y, False]
+                    
+#    return [t,P,x_is_F_of_y]
+
+
+def Nurbs_SW_case(image,p1,p2,p3,p4,L3,L4, same_x, same_y, same_z, L):
+    
+    x_is_F_of_y = False
+    
+    # Step 2. Find intersection of line between L4,L3 and the 45 degree line
+    if ( abs(L3.x - p4.x) < abs(p4.y - L4.y) ):
+        x_is_F_of_y = True;
+    else: 
+        x_is_F_of_y = False;
+
+
+    if (x_is_F_of_y == False):
+        # Step 1. Search for the interface along vertical lines at 1/3 and 2/3
+        p1third12 = Coordinate2D( float ((p4.x - L3.x) / 3.0) + L3.x, p1.y);
+        p1third34 = Coordinate2D( p1third12.x, p4.y);
+        E = log_search_2d(image,p1third12,p1third34, same_x, same_y, same_z, L);
+        
+        p2thirds12 = Coordinate2D(float (2.0 * (p4.x - L3.x) / 3.0) + L3.x, p1.y);
+        p2thirds34 = Coordinate2D( p2thirds12.x, p4.y);
+        F = log_search_2d(image, p2thirds12, p2thirds34, same_x, same_y, same_z, L);
+
+        # Step 2. Build the sample points vector   
+        Q = [ [L4.x, L4.y], [F.x, F.y], [E.x, E.y], [L3.x, L3.y]]
+
+        # Step 3. Determine the control points
+        P = Nurbs_control_points(Q)
+        
+        t_step = 1.0 / abs(p4.x - L3.x)
+        
+        p12 = Coordinate2D( (p4.x + L3.x)/2.0, p1.y)
+        p34 = Coordinate2D( p12.x, p4.y )
+        C = log_search_2d(image,p12,p34, same_x, same_y, same_z, L)
+            
+        Nx = Nurbs_basis_fcts(0.5,P[:,0])
+        Ny = Nurbs_basis_fcts(0.5,P[:,1])
+        NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
+        
+    else:
+        # Step 1. Search for the interface along horizontal lines at 1/3 and 2/3
+        p1third14 = Coordinate2D( p1.x, float ((p4.y - L4.y) / 3.0) + L4.y);
+        p1third23 = Coordinate2D( p2.x, p1third14.y);
+        E = log_search_2d(image,p1third14,p1third23, same_x, same_y, same_z, L);
+
+        p2thirds14 = Coordinate2D(p1.x, float (2.0 * (p4.y - L4.y) / 3.0) + L4.y );
+        p2thirds23 = Coordinate2D(p2.x, p2thirds14.y);
+        F = log_search_2d(image, p2thirds14,p2thirds23, same_x, same_y, same_z, L);
+
+        # Step 2. Build the sample points vector   
+        Q = [ [L3.y, L3.x], [F.y, F.x], [E.y, E.x], [L4.y, L4.x]]
+    
+        # Step 3. Determine the control points
+        P = Nurbs_control_points(Q)
+    
+        t_step = 1.0 / abs(p4.y - L4.y)
+        
+        p14 = Coordinate2D( p1.x, (L4.y + p4.y) / 2.0)
+        p23 = Coordinate2D(p3.x, p14.y)
+        C = log_search_2d(image,p14,p23, same_x, same_y, same_z, L)
+            
+        Nx = Nurbs_basis_fcts(0.5,P[:,1])
+        Ny = Nurbs_basis_fcts(0.5,P[:,0])
+        NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
+
+    
+    t = arange(0, 1+t_step, t_step)
+    
+    if find_distance2D(C,NC) <= TOL_NURBS:
+        return [t,P,x_is_F_of_y, True]
+    else:
+        return [t,P,x_is_F_of_y, False]
+    
+
+
+def Nurbs_vertical_case(image,p1,p2,p3,p4,L1,L3, same_x, same_y, same_z, L):
+    
+    x_is_F_of_y = True
+    
+    # Step 1. Search for the interface along vertical lines at 1/3 and 2/3
+    p1third14 = Coordinate2D( p1.x, float ((p4.y - p1.y) / 3.0) + p1.y);
+    p1third23 = Coordinate2D( p2.x, float ((p3.y - p2.y) / 3.0) + p2.y);
+    E = log_search_2d(image,p1third14,p1third23, same_x, same_y, same_z, L);
+
+    p2thirds14 = Coordinate2D(p1.x, float (2.0 * (p4.y - p1.y) / 3.0) + p1.y );
+    p2thirds23 = Coordinate2D(p2.x, float (2.0 * (p3.y - p2.y) / 3.0) + p2.y );
+    F = log_search_2d(image,p2thirds14,p2thirds23, same_x, same_y, same_z, L);
+
+    # Step 2. Build the sample points vector   
+    Q = [ [L3.y, L3.x], [F.y, F.x], [E.y, E.x], [L1.y, L1.x]]
+    
+    # Step 3. Determine the control points
+    P = Nurbs_control_points(Q)
+
+    t_step = 1.0 / abs(p1.y - p4.y)
+    
+    p14 = Coordinate2D(p1.x, floor( (p1.y + p4.y)/2.0) )
+    p23 = Coordinate2D(p2.x, floor( (p2.y + p3.y)/2.0) )
+    C = log_search_2d(image, p14, p23, same_x, same_y, same_z, L)
+        
+    Nx = Nurbs_basis_fcts(0.5,P[:,1])
+    Ny = Nurbs_basis_fcts(0.5,P[:,0])
+    NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
+        
+    t = arange(0, 1+t_step, t_step)
+    
+    if find_distance2D(C,NC) <= TOL_NURBS:
+        return [t,P,x_is_F_of_y, True]
+    else:
+        return [t,P,x_is_F_of_y, False]
+    
+def Nurbs_horizontal_case(image,p1,p2,p3,p4,L2,L4, same_x, same_y, same_z, L):
+    
+    x_is_F_of_y = False    
+
+    # Step 1. Search for the interface along vertical lines at 1/3 and 2/3
+    p1third12 = Coordinate2D( float ((p2.x - p1.x) / 3.0) + p1.x, p1.y);
+    p1third34 = Coordinate2D( float ((p3.x - p4.x) / 3.0) + p4.x, p4.y);
+    E = log_search_2d(image,p1third12,p1third34, same_x, same_y, same_z, L);
+
+    p2thirds12 = Coordinate2D( float (2.0 * (p2.x - p1.x) / 3.0) + p1.x, p1.y);
+    p2thirds34 = Coordinate2D( float (2.0 * (p3.x - p4.x) / 3.0) + p4.x, p4.y);
+    F = log_search_2d(image,p2thirds12,p2thirds34, same_x, same_y, same_z, L);
+
+    # Step 2. Build the cubic polynomial
+    xi = [L4.x, E.x, F.x, L2.x];
+    yi = [L4.y, E.y, F.y, L2.y];
+        
+            
+    # Step 2. Build the sample points vector   
+    Q = [ [L4.x, L4.y], [E.x, E.y], [F.x, F.y], [L2.x, L2.y]]
+    
+    # Step 3. Determine the control points
+    P = Nurbs_control_points(Q)
+
+    t_step = 1.0 / abs(p1.x - p2.x)
+    
+    p12 = Coordinate2D( (p1.x + p2.x)/2.0, p1.y)
+    p34 = Coordinate2D( (p3.x + p4.x)/2.0, p4.y)
+    C = log_search_2d(image,p12,p34, same_x, same_y, same_z, L)
+        
+    Nx = Nurbs_basis_fcts(0.5,P[:,0])
+    Ny = Nurbs_basis_fcts(0.5,P[:,1])
+    NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
+            
+    t = arange(0, 1+t_step, t_step)
+    
+    if find_distance2D(C,NC) <= TOL_NURBS:
+        return [t,P,x_is_F_of_y, True]
+    else:
+        return [t,P,x_is_F_of_y, False]
+    
+def draw_nurbs_on_face(image, inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1,p2,p3,p4):
+    
+    same_x = False
+    same_y = False
+    same_z = False
+    
+    print l1, l2, l3, l4
+    print p1.x, p1.y, p1.z
+    print p2.x, p2.y, p2.z
+    print p3.x, p3.y, p3.z
+    print p4.x, p4.y, p4.z
+    
+    if p1.x == p2.x and p2.x == p3.x and p3.x == p4.x:
+        np1 = Coordinate2D(p1.y, p1.z)
+        np2 = Coordinate2D(p2.y, p2.z)
+        np3 = Coordinate2D(p3.y, p3.z)
+        np4 = Coordinate2D(p4.y, p4.z)
+        same_x = True
+        
+    if p1.y == p2.y and p2.y == p3.y and p3.y == p4.y:
+        np1 = Coordinate2D(p1.x, p1.z)
+        np2 = Coordinate2D(p2.x, p2.z)
+        np3 = Coordinate2D(p3.x, p3.z)
+        np4 = Coordinate2D(p4.x, p4.z)
+        same_y = True
+
+    if p1.z == p2.z and p2.z == p3.z and p3.z == p4.z:
+        np1 = Coordinate2D(p1.x, p1.y)
+        np2 = Coordinate2D(p2.x, p2.y)
+        np3 = Coordinate2D(p3.x, p3.y)
+        np4 = Coordinate2D(p4.x, p4.y)
+        same_z = True
+        
+    
+    # NW case
+    if (l1==0 and l2==1 and l3==1 and l4==0) and len(L1)>0 and len(L4)>0:
+        L1 = L1[0]
+        L4 = L4[0]
+        if coords_not_equal(L1,L4):
+            [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L1, L4)  
+    #        print L1.x, L1.y, L1.z
+    #        print L4.x, L4.y, L4.z
+    #        print nP1.x, nP1.y
+    #        print nP2.x, nP2.y
+            [t,P,x_is_F_of_y,test_approx] = Nurbs_NW_case(inImage,np1,np2,np3,np4,nP2,nP1,same_x, same_y, same_z, L1)
+            draw_nurbs(image,t,P,x_is_F_of_y,np1,np2,np4, same_x, same_y, same_z, L1)
+                             
+    # NE case
+    if (l1==0 and l2==0 and l3==1 and l4==1) and len(L1) > 0 and len(L2) > 0:
+        L1 = L1[0]
+        L2 = L2[0]
+        if coords_not_equal(L1,L2):
+            [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L1, L2)
+            
+            [t,P,x_is_F_of_y,test_approx] = Nurbs_NE_case(inImage,np1,np2,np3,np4,nP1,nP2,same_x, same_y, same_z, L1)
+            draw_nurbs(image,t,P,x_is_F_of_y,np1,np2,np4, same_x, same_y, same_z, L1)
+        
+     # SE case                        
+    if(l1==1 and l2==0 and l3==0 and l4==1) and len(L3) > 0 and len(L2) > 0:
+        L2 = L2[0]
+        L3 = L3[0]
+        if coords_not_equal(L2,L3):
+            [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L3, L2)
+            
+            print L2.x, L2.y, L2.z
+            print L3.x, L3.y, L3.z
+            print nP1.x, nP1.y
+            print nP2.x, nP2.y
+
+            [t,P,x_is_F_of_y,test_approx] = Nurbs_SE_case(inImage,np1,np2,np3,np4,nP2,nP1,same_x, same_y, same_z, L2)
+            draw_nurbs(image,t,P,x_is_F_of_y,np1,np2,np4, same_x, same_y, same_z, L2)
+    
+     # SW case
+    if (l1==1 and l2==1 and l3==0 and l4==0) and len(L3) > 0 and len(L4) > 0:
+        L3 = L3[0]
+        L4 = L4[0]
+        if coords_not_equal(L3,L4):
+            [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L4, L3)
+            
+            [t,P,x_is_F_of_y,test_approx] = Nurbs_SW_case(inImage,np1,np2,np3,np4,nP2,nP1,same_x, same_y, same_z, L3)
+            draw_nurbs(image,t,P,x_is_F_of_y,np1,np2,np4, same_x, same_y, same_z, L3)
+     
+     # vertical case
+    if (l1==0 and l2==1 and l3==0 and l4==1 ) and len(L1) > 0 and len(L3) > 0:
+        L1 = L1[0]
+        L3 = L3[0]
+        if coords_not_equal(L1,L3):
+            [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L1, L3)
+            
+            [t,P,x_is_F_of_y,test_approx] = Nurbs_vertical_case(inImage,np1,np2,np3,np4,nP2,nP1,same_x, same_y, same_z, L1)
+            draw_nurbs(image,t,P,x_is_F_of_y,np1,np2,np4, same_x, same_y, same_z, L1)
+        
+   # horizontal case 
+    if (l1==True and l2==False and l3==True and l4==False) and len(L4) > 0 and len(L2) > 0:  
+        L2 = L2[0]
+        L4 = L4[0]
+        if coords_not_equal(L2,L4):
+            [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L4, L2)
+             
+            [t,P,x_is_F_of_y,test_approx] = Nurbs_horizontal_case(inImage,np1,np2,np3,np4,nP2,nP1,same_x, same_y, same_z, L2)
+            draw_nurbs(image,t,P,x_is_F_of_y,np1,np2,np4, same_x, same_y, same_z, L2)  
+        
+def sort_nPs(same_x, same_y, same_z, L1, L4):
+    if same_x == True:
+        if L1.y <= L4.y:
+            nP1 = Coordinate2D(L1.y, L1.z)
+            nP2 = Coordinate2D(L4.y, L4.z)
+        else:
+            nP2 = Coordinate2D(L1.y, L1.z)
+            nP1 = Coordinate2D(L4.y, L4.z)
+            
+    if same_y == True:
+        if L1.x <= L4.x:
+            nP1 = Coordinate2D(L1.x, L1.z)
+            nP2 = Coordinate2D(L4.x, L4.z)
+        else:
+            nP2 = Coordinate2D(L1.x, L1.z)
+            nP1 = Coordinate2D(L4.x, L4.z)
+        
+    if same_z == True:
+        if L1.x <= L4.x:
+            nP1 = Coordinate2D(L1.x, L1.y)
+            nP2 = Coordinate2D(L4.x, L4.y)
+        else:
+            nP2 = Coordinate2D(L1.x, L1.y)
+            nP1 = Coordinate2D(L4.x, L4.y)
+    
+    return [nP1, nP2]   
+                    
+def draw_nurbs(image,t,P,x_is_F_of_y,p1,p2,p4, same_x, same_y, same_z, L):
+    px_col = 0
+    
+    imageSize = image.GetSize()
+    
+    Px = P[:,0]
+    Py = P[:,1]
+    
+    for i in range(0,len(t)):
+        if x_is_F_of_y == False:
+            Nx = Nurbs_basis_fcts(t[i],Px)
+            Ny = Nurbs_basis_fcts(t[i],Py)
+        else:
+            Nx = Nurbs_basis_fcts(t[i],Py)
+            Ny = Nurbs_basis_fcts(t[i],Px)
+
+        xloc = int(Nx(t[i]))
+        yloc = int(Ny(t[i]))
+        
+        if ( (p1.x <= xloc and xloc <= p2.x and p1.y <= yloc and yloc <= p4.y) or 
+         (p1.x <= yloc and yloc <= p2.x and p1.y <= xloc and xloc <= p4.y) ):
+                if same_z == True:
+                    image.SetPixel(xloc,yloc,L.z,px_col)
+                if same_x == True:
+                    image.SetPixel(L.x,xloc,yloc,px_col)
+                if same_y == True:
+                    image.SetPixel(xloc,L.y,yloc,px_col)
+        
+                  
+def log_search_2d(image,bbegin,eend, same_x, same_y, same_z, L):
+        
+        begin = Coordinate2D(bbegin.x,bbegin.y);
+        end = Coordinate2D(eend.x,eend.y);
+        mid = Coordinate2D();
+
+        mid.x = (begin.x + end.x)/2.0;
+        mid.y = (begin.y + end.y)/2.0;
+        dist = find_distance2D(begin,end)
+        while dist>2 and not(ends_in_same_bin_2d(image,begin,end, same_x, same_y, same_z, L)):
+            if ends_in_same_bin_2d(image,begin, mid, same_x, same_y, same_z, L):
+                begin.x = mid.x
+                begin.y = mid.y;
+                mid.x = (begin.x + end.x)/2.0;
+                mid.y = (begin.y + end.y)/2.0;
+            else:
+                end.x = mid.x;
+                end.y = mid.y;
+                mid.x = (begin.x + end.x)/2.0;
+                mid.y = (begin.y + end.y)/2.0;
+        
+            dist = find_distance2D(begin,end)
+
+        mid.x = int(mid.x)
+        mid.y = int(mid.y)
+        #return Coordinate(int(mid.x), int(mid.y))
+        return mid
+                    
+
+## Find distance between two points
+def find_distance2D(p1, p2):
+    dx = p2.x - p1.x
+    dy = p2.y - p1.y
+    return ( sqrt(dx**2 + dy**2) )                                           

@@ -12,12 +12,12 @@ TOL_error = 3
 
 VAL = 1
 
-MAX_SIZE_X = 64   
-MIN_SIZE_X = 16
-MAX_SIZE_Y = 64    
-MIN_SIZE_Y = 16
-MAX_SIZE_Z = 64
-MIN_SIZE_Z = 16
+MAX_SIZE_X = 125   
+MIN_SIZE_X = 125
+MAX_SIZE_Y = 127    
+MIN_SIZE_Y = 127
+MAX_SIZE_Z = 127
+MIN_SIZE_Z = 127
 
 # K-neighbor rule
 k1_CONST = 5
@@ -26,3 +26,7 @@ k2_CONST = 2
 # minimum number of elements between two interfaces
 N_ELEMS = 4
 STRESS_MIN = 4
+
+NURBS_ON = 1
+
+TOL_NURBS = 3.0

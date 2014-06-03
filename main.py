@@ -656,6 +656,7 @@ class CNode(Node):
 
 
                 if len(x_list_c) > 0 and  len(y_list_c) > 0 and len(z_list_c) >0:
+                    if NURBS_ON == 0:
                         [res,coeffs] = calc_plane_residual(x_list_c, y_list_c, z_list_c)
                         if res <= 0.001 and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
 #                            draw_plane_connections(self.outImage, l1,l2,l3,l4, L1,L2,L3,L4) # 1234
@@ -669,7 +670,6 @@ class CNode(Node):
                                 vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
                             self.enrichNodes = vecCoord 
                             self.ishomog = 0
-#                            print 'inside residual approx', len(self.enrichNodes)
 
 #                            return False  
                         
@@ -713,7 +713,10 @@ class CNode(Node):
                                 draw_line(self.outImage, cMid4378 , cMid )
                                 draw_line(self.outImage, cMid , cMid1265 )
                                 return True
-                    
+                    else: #NURBS_ON == 1
+                           print 'NURBS are ON'
+                           
+                                            
 #                # NW
 #                if (l1==0 and l2==1 and l3==1 and l4==0) and (abs(p1.x-p2.x) < 2*MIN_SIZE) :
 #                    draw_line(self.outImage, L1, L4)
@@ -890,13 +893,57 @@ def draw_interface(outImage, inImage, tree_list, masterNode):
             L11 = search_in(LIST,p3,p7,inImage)
             L12 = search_in(LIST,p4,p8,inImage)
 
-            draw_plane_connections(outImage, l1,l2,l3,l4, L1,L2,L3,L4) # 1234
-            draw_plane_connections(outImage, l1,l2,l6,l5, L1,L2,L6,L5) # 1265
-            draw_plane_connections(outImage, l3,l2,l6,l7, L3,L2,L6,L7) # 3267
-            draw_plane_connections(outImage, l4,l3,l7,l8, L4,L3,L7,L8) # 4378
-            draw_plane_connections(outImage, l4,l1,l5,l8, L4,L1,L5,L8) # 4158
-            draw_plane_connections(outImage, l5,l6,l7,l8, L5,L6,L7,L8) # 5678
-
+#            if len(L1) >= 1:
+#                L1 = L1[0]
+#
+#            if len(L2) >= 1:
+#                L2 = L2[0]
+#
+#            if len(L3) >= 1:
+#                L3 = L3[0]
+#
+#            if len(L4) >= 1:
+#                L4 = L4[0]
+#                                
+#            if len(L5) >= 1:
+#                L5 = L5[0]
+#                                
+#            if len(L6) >= 1:
+#                L6 = L6[0]
+#                                
+#            if len(L7) >= 1:
+#                L7 = L7[0]
+#                                
+#            if len(L8) >= 1:
+#                L8 = L8[0]
+#                                
+#            if len(L9) >= 1:
+#                L9 = L9[0]
+#                                
+#            if len(L10) >= 1:
+#                L10 = L10[0]
+#                                
+#            if len(L11) >= 1:
+#                L11 = L11[0]
+#                                
+#            if len(L12) >= 1:
+#                L12 = L12[0]
+                                
+            if NURBS_ON == 0:
+                draw_plane_connections(outImage, l1,l2,l3,l4, L1,L2,L3,L4) # 1234
+                draw_plane_connections(outImage, l1,l2,l6,l5, L1,L10,L5,L9) # 1265
+                draw_plane_connections(outImage, l3,l2,l6,l7, L2,L10,L6,L11) # 3267
+                draw_plane_connections(outImage, l4,l3,l7,l8, L3,L11,L7,L12) # 4378
+                draw_plane_connections(outImage, l4,l1,l5,l8, L4,L9,L8,L12) # 4158
+                draw_plane_connections(outImage, l5,l6,l7,l8, L5,L6,L7,L8) # 5678
+            else:
+                root_i.printcube()
+                draw_nurbs_on_face(outImage, inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1, p2, p3, p4) # 1234
+                draw_nurbs_on_face(outImage, inImage, l1,l2,l6,l5, L1,L10,L5,L9, p1, p2, p6, p5) # 1265
+                draw_nurbs_on_face(outImage, inImage, l3,l2,l6,l7, L2,L10,L6,L11, p2, p3, p7, p6) # 3267
+                draw_nurbs_on_face(outImage, inImage, l4,l3,l7,l8, L3,L11,L7,L12, p4, p3, p7, p8) # 4378
+                draw_nurbs_on_face(outImage, inImage, l4,l1,l5,l8, L4,L9,L8,L12, p1, p4, p8, p5) # 4158
+                draw_nurbs_on_face(outImage, inImage, l5,l6,l7,l8, L5,L6,L7,L8, p5, p6, p7, p8) # 5678
   
 def write_to_vtk(masterNode, llist):
     n = len(llist)
@@ -970,48 +1017,48 @@ if __name__ == "__main__":
 #    outputImage = sitk.ReadImage("dataset/channels_512x256.dcm")
 
 
-    sitk.WriteImage(inputImage,"dataset/orig_mesh_fibers512x256.vtk");
+#    sitk.WriteImage(inputImage,"dataset/orig_mesh_fibers512x256.vtk");
     
-#    nameOutputImage = "dataset/outChannels256-AllConstr.vtk"
-##    nameOutputImage = "dataset/out_mesh.vtk" 
-# 
-#    
-#    imageSize = inputImage.GetSize()
-#    print "Image size:", imageSize
-#
-#     
-#    # setting the 4 corners coordinates
-#    p1 = Coordinate(0,0,0)
-#    p2 = Coordinate(imageSize[0]-1,0,0)
-#    p3 = Coordinate(imageSize[0]-1,imageSize[1]-1,0)
-#    p4 = Coordinate(0,imageSize[1]-1,0)
-#    p5 = Coordinate(0,0,imageSize[2]-1)
-#    p6 = Coordinate(imageSize[0]-1,0,imageSize[2]-1)
-#    p7 = Coordinate(imageSize[0]-1,imageSize[1]-1,imageSize[2]-1)
-#    p8 = Coordinate(0,imageSize[1]-1,imageSize[2]-1)
-#    
-#    
-#    cube = [p1,p2,p3,p4,p5,p6,p7,p8]
-#    rootNode = CNode(None,cube,inputImage,outputImage,imageSize)
-#    tree = COctoTree(rootNode)
-#    
-#    masterNode = CNode(None,cube,inputImage,outputImage,imageSize)
-#    
-#    masterNode = rootNode
-#
-#    totalNumberOfNodes = tree.count_nodes(rootNode)
-#    print totalNumberOfNodes
-#    newTotalNumberOfNodes = -1
-#    while totalNumberOfNodes != newTotalNumberOfNodes:
-#         print 'No enrichment nodes and hanging nodes in the same element '
-#         totalNumberOfNodes = newTotalNumberOfNodes
-#         masterNode = rootNode
-#         ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
-#         newTotalNumberOfNodes = tree.count_nodes(rootNode)
-#         
-#    masterNode = rootNode
-#    
-#
+    nameOutputImage = "dataset/outChannels256-working.vtk"
+#    nameOutputImage = "dataset/out_mesh.vtk" 
+ 
+    
+    imageSize = inputImage.GetSize()
+    print "Image size:", imageSize
+
+     
+    # setting the 4 corners coordinates
+    p1 = Coordinate(0,0,0)
+    p2 = Coordinate(imageSize[0]-1,0,0)
+    p3 = Coordinate(imageSize[0]-1,imageSize[1]-1,0)
+    p4 = Coordinate(0,imageSize[1]-1,0)
+    p5 = Coordinate(0,0,imageSize[2]-1)
+    p6 = Coordinate(imageSize[0]-1,0,imageSize[2]-1)
+    p7 = Coordinate(imageSize[0]-1,imageSize[1]-1,imageSize[2]-1)
+    p8 = Coordinate(0,imageSize[1]-1,imageSize[2]-1)
+    
+    
+    cube = [p1,p2,p3,p4,p5,p6,p7,p8]
+    rootNode = CNode(None,cube,inputImage,outputImage,imageSize)
+    tree = COctoTree(rootNode)
+    
+    masterNode = CNode(None,cube,inputImage,outputImage,imageSize)
+    
+    masterNode = rootNode
+
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    print totalNumberOfNodes
+    newTotalNumberOfNodes = -1
+    while totalNumberOfNodes != newTotalNumberOfNodes:
+         print 'No enrichment nodes and hanging nodes in the same element '
+         totalNumberOfNodes = newTotalNumberOfNodes
+         masterNode = rootNode
+         ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
+         newTotalNumberOfNodes = tree.count_nodes(rootNode)
+         
+    masterNode = rootNode
+    
+
 #    totalNumberOfNodes = tree.count_nodes(rootNode)
 #    newTotalNumberOfNodes = -1
 #    print totalNumberOfNodes
@@ -1119,14 +1166,14 @@ if __name__ == "__main__":
 #    newTotalNumberOfNodes = -1
 #    print totalNumberOfNodes
 #    
-#    llist = []
-#    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
+    llist = []
+    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
+    
+    print len(tree_list_of_nodes)
+    draw_interface(outputImage, inputImage, tree_list_of_nodes, masterNode)
 #    
-#    print len(tree_list_of_nodes)
-#    draw_interface(outputImage, inputImage, tree_list_of_nodes, masterNode)
-#    
-#    print 'writing the image out'
-#    sitk.WriteImage(outputImage,nameOutputImage);
+    print 'writing the image out'
+    sitk.WriteImage(outputImage,nameOutputImage);
 #
 #
 #
