@@ -416,6 +416,7 @@ class CNode(Node):
     def division_criterion(self, cube, inImage, outImage):
         
         p1,p2,p3,p4,p5,p6,p7,p8 = self.cube
+        
         cMid12 = find_mid_point(p1,p2)
         cMid14 = find_mid_point(p1,p4)
         cMid23 = find_mid_point(p2,p3)
@@ -444,7 +445,7 @@ class CNode(Node):
 #        print abs(p1.x - p2.x), abs(p1.y - p4.y),  abs(p1.z - p5.z)
 #        print abs(p1.x-p2.x), (p1.y-p4.y), (p1.z-p5.z)
         
-        if abs(p1.x - p2.x) > MAX_SIZE_X and abs(p1.y - p4.y) > MAX_SIZE_Y and abs(p1.z - p5.z) > MAX_SIZE_Z:          
+        if abs(p1.x - p2.x) > MAX_SIZE_X or abs(p1.y - p4.y) > MAX_SIZE_Y or abs(p1.z - p5.z) > MAX_SIZE_Z:          
             
             draw_line(self.outImage, cMid12 , cMid1234 )
             draw_line(self.outImage, cMid1234 , cMid34 )
@@ -596,64 +597,97 @@ class CNode(Node):
                         x_list_c.append(L1.x)
                         y_list_c.append(L1.y)
                         z_list_c.append(L1.z)
-                    
+                    elif len(L1) == 0:
+                        L1 = Coordinate(-100,-100,-100)
+                        
                     if len(L2) == 1:
                         L2 = L2[0]
                         x_list_c.append(L2.x)
                         y_list_c.append(L2.y)
                         z_list_c.append(L2.z)
+                    elif len(L2) == 0:
+                        L2 = Coordinate(-100,-100,-100)
                     
                     if len(L3) == 1:
                         L3 = L3[0]
                         x_list_c.append(L3.x)
                         y_list_c.append(L3.y)
                         z_list_c.append(L3.z)
+                    elif len(L3) == 0:
+                        L3 = Coordinate(-100,-100,-100)
+                    
                     if len(L4) == 1:
                         L4 = L4[0]
                         x_list_c.append(L4.x)
                         y_list_c.append(L4.y)
                         z_list_c.append(L4.z)
+                    elif len(L4) == 0:
+                        L4 = Coordinate(-100,-100,-100)
+                    
                     if len(L5) == 1:
                         L5 = L5[0]
                         x_list_c.append(L5.x)
                         y_list_c.append(L5.y)
                         z_list_c.append(L5.z)
+                    elif len(L5) == 0:
+                        L5 = Coordinate(-100,-100,-100)
+                    
                     if len(L6) == 1:
                         L6 = L6[0]           
                         x_list_c.append(L6.x)
                         y_list_c.append(L6.y)
                         z_list_c.append(L6.z)                                     
+                    elif len(L6) == 0:
+                        L6 = Coordinate(-100,-100,-100)
+                    
                     if len(L7) == 1:
                         L7 = L7[0]
                         x_list_c.append(L7.x)
                         y_list_c.append(L7.y)
                         z_list_c.append(L7.z)
+                    elif len(L7) == 0:
+                        L7 = Coordinate(-100,-100,-100)
+                    
                     if len(L8) == 1:
                         L8 = L8[0]
                         x_list_c.append(L8.x)
                         y_list_c.append(L8.y)
                         z_list_c.append(L8.z)
+                    elif len(L8) == 0:
+                        L8 = Coordinate(-100,-100,-100)
+                    
                     if len(L9) == 1:
                         L9 = L9[0]
                         x_list_c.append(L9.x)
                         y_list_c.append(L9.y)
                         z_list_c.append(L9.z)
+                    elif len(L9) == 0:
+                        L9 = Coordinate(-100,-100,-100)
+                    
                     if len(L10) == 1:
                         L10 = L10[0]
                         x_list_c.append(L10.x)
                         y_list_c.append(L10.y)
                         z_list_c.append(L10.z)
+                    elif len(L10) == 0:
+                        L10 = Coordinate(-100,-100,-100)
+                    
                     if len(L11) == 1:
                         L11 = L11[0]
                         x_list_c.append(L11.x)
                         y_list_c.append(L11.y)
                         z_list_c.append(L11.z)
+                    elif len(L11) == 0:
+                        L11 = Coordinate(-100,-100,-100)
+                    
                     if len(L12) == 1:
                         L12 = L12[0]
                         x_list_c.append(L12.x)
                         y_list_c.append(L12.y)
                         z_list_c.append(L12.z)
-
+                    elif len(L12) == 0:
+                        L12 = Coordinate(-100,-100,-100)
+                    
 
                 if len(x_list_c) > 0 and  len(y_list_c) > 0 and len(z_list_c) >0:
                     if NURBS_ON == 0:
@@ -713,9 +747,308 @@ class CNode(Node):
                                 draw_line(self.outImage, cMid4378 , cMid )
                                 draw_line(self.outImage, cMid , cMid1265 )
                                 return True
+                            
                     else: #NURBS_ON == 1
-                           print 'NURBS are ON'
-                           
+#                        print 'NURBS are ON'
+                        test_approx = check_nurbs_on_face(self.inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1, p2, p3, p4) # 1234
+#                        print '1234', test_approx
+                        if test_approx == False and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                            print 'aici'
+                            draw_line(self.outImage, cMid12 , cMid1234 )
+                            draw_line(self.outImage, cMid1234 , cMid34 )
+                            draw_line(self.outImage, cMid14 , cMid1234 )
+                            draw_line(self.outImage, cMid1234 , cMid23 )
+                            
+                            draw_line(self.outImage, cMid23 , cMid3267 )
+                            draw_line(self.outImage, cMid3267 , cMid67 )
+                            draw_line(self.outImage, cMid37 , cMid3267 )
+                            draw_line(self.outImage, cMid3267 , cMid26 )
+                            
+                            draw_line(self.outImage, cMid12 , cMid1265 )
+                            draw_line(self.outImage, cMid1265 , cMid56 )
+                            draw_line(self.outImage, cMid15 , cMid1265 )
+                            draw_line(self.outImage, cMid1265 , cMid26 )
+                            
+                            draw_line(self.outImage, cMid14 , cMid4158 )
+                            draw_line(self.outImage, cMid4158 , cMid58 )
+                            draw_line(self.outImage, cMid48 , cMid4158 )
+                            draw_line(self.outImage, cMid4158 , cMid15 )
+                
+                            draw_line(self.outImage, cMid34 , cMid4378 )
+                            draw_line(self.outImage, cMid4378 , cMid87 )
+                            draw_line(self.outImage, cMid48 , cMid4378 )
+                            draw_line(self.outImage, cMid4378 , cMid37 )
+                            
+                            draw_line(self.outImage, cMid58 , cMid5678 )
+                            draw_line(self.outImage, cMid5678 , cMid67 )
+                            draw_line(self.outImage, cMid87 , cMid5678 )
+                            draw_line(self.outImage, cMid5678 , cMid56 )
+                                        
+                            draw_line(self.outImage, cMid1234 , cMid )
+                            draw_line(self.outImage, cMid , cMid5678 )
+                            draw_line(self.outImage, cMid4158 , cMid )
+                            draw_line(self.outImage, cMid , cMid3267 )
+                            draw_line(self.outImage, cMid4378 , cMid )
+                            draw_line(self.outImage, cMid , cMid1265 )
+                            return True
+                        elif (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                            vecCoord = []
+                            for i in range(0,len(x_list_c)):
+                                vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
+                            self.enrichNodes = vecCoord 
+                            self.ishomog = 0
+#                            print '1234'
+                            
+                        test_approx = check_nurbs_on_face(self.inImage, l1,l2,l6,l5, L1,L10,L5,L9, p1, p2, p6, p5) # 1265
+#                        print '1265', test_approx
+                        if test_approx == False and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                            print 'ever inside here?!!!!!!!!'
+                            draw_line(self.outImage, cMid12 , cMid1234 )
+                            draw_line(self.outImage, cMid1234 , cMid34 )
+                            draw_line(self.outImage, cMid14 , cMid1234 )
+                            draw_line(self.outImage, cMid1234 , cMid23 )
+                            
+                            draw_line(self.outImage, cMid23 , cMid3267 )
+                            draw_line(self.outImage, cMid3267 , cMid67 )
+                            draw_line(self.outImage, cMid37 , cMid3267 )
+                            draw_line(self.outImage, cMid3267 , cMid26 )
+                            
+                            draw_line(self.outImage, cMid12 , cMid1265 )
+                            draw_line(self.outImage, cMid1265 , cMid56 )
+                            draw_line(self.outImage, cMid15 , cMid1265 )
+                            draw_line(self.outImage, cMid1265 , cMid26 )
+                            
+                            draw_line(self.outImage, cMid14 , cMid4158 )
+                            draw_line(self.outImage, cMid4158 , cMid58 )
+                            draw_line(self.outImage, cMid48 , cMid4158 )
+                            draw_line(self.outImage, cMid4158 , cMid15 )
+                
+                            draw_line(self.outImage, cMid34 , cMid4378 )
+                            draw_line(self.outImage, cMid4378 , cMid87 )
+                            draw_line(self.outImage, cMid48 , cMid4378 )
+                            draw_line(self.outImage, cMid4378 , cMid37 )
+                            
+                            draw_line(self.outImage, cMid58 , cMid5678 )
+                            draw_line(self.outImage, cMid5678 , cMid67 )
+                            draw_line(self.outImage, cMid87 , cMid5678 )
+                            draw_line(self.outImage, cMid5678 , cMid56 )
+                            
+                            draw_line(self.outImage, cMid1234 , cMid )
+                            draw_line(self.outImage, cMid , cMid5678 )
+                            draw_line(self.outImage, cMid4158 , cMid )
+                            draw_line(self.outImage, cMid , cMid3267 )
+                            draw_line(self.outImage, cMid4378 , cMid )
+                            draw_line(self.outImage, cMid , cMid1265 )
+                            return True
+                        elif (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                            vecCoord = []
+                            for i in range(0,len(x_list_c)):
+                                vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
+                            self.enrichNodes = vecCoord 
+                            self.ishomog = 0
+#                            print '1265'
+                            
+                        test_approx =  check_nurbs_on_face(self.inImage, l3,l2,l6,l7, L2,L10,L6,L11, p2, p3, p7, p6) # 3267
+#                        print '3267',test_approx
+                        if test_approx == False and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                            print 'ever inside here?!!!!!!!!0000000000'
+                            draw_line(self.outImage, cMid12 , cMid1234 )
+                            draw_line(self.outImage, cMid1234 , cMid34 )
+                            draw_line(self.outImage, cMid14 , cMid1234 )
+                            draw_line(self.outImage, cMid1234 , cMid23 )
+                            
+                            draw_line(self.outImage, cMid23 , cMid3267 )
+                            draw_line(self.outImage, cMid3267 , cMid67 )
+                            draw_line(self.outImage, cMid37 , cMid3267 )
+                            draw_line(self.outImage, cMid3267 , cMid26 )
+                            
+                            draw_line(self.outImage, cMid12 , cMid1265 )
+                            draw_line(self.outImage, cMid1265 , cMid56 )
+                            draw_line(self.outImage, cMid15 , cMid1265 )
+                            draw_line(self.outImage, cMid1265 , cMid26 )
+                            
+                            draw_line(self.outImage, cMid14 , cMid4158 )
+                            draw_line(self.outImage, cMid4158 , cMid58 )
+                            draw_line(self.outImage, cMid48 , cMid4158 )
+                            draw_line(self.outImage, cMid4158 , cMid15 )
+                
+                            draw_line(self.outImage, cMid34 , cMid4378 )
+                            draw_line(self.outImage, cMid4378 , cMid87 )
+                            draw_line(self.outImage, cMid48 , cMid4378 )
+                            draw_line(self.outImage, cMid4378 , cMid37 )
+                            
+                            draw_line(self.outImage, cMid58 , cMid5678 )
+                            draw_line(self.outImage, cMid5678 , cMid67 )
+                            draw_line(self.outImage, cMid87 , cMid5678 )
+                            draw_line(self.outImage, cMid5678 , cMid56 )
+                            
+                            draw_line(self.outImage, cMid1234 , cMid )
+                            draw_line(self.outImage, cMid , cMid5678 )
+                            draw_line(self.outImage, cMid4158 , cMid )
+                            draw_line(self.outImage, cMid , cMid3267 )
+                            draw_line(self.outImage, cMid4378 , cMid )
+                            draw_line(self.outImage, cMid , cMid1265 )
+                            return True
+                        elif (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                            vecCoord = []
+                            for i in range(0,len(x_list_c)):
+                                vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
+                            self.enrichNodes = vecCoord 
+                            self.ishomog = 0
+#                            print '3267'
+                        
+                        test_approx = check_nurbs_on_face(self.inImage, l4,l3,l7,l8, L3,L11,L7,L12, p4, p3, p7, p8) # 4378
+#                        print '4378', test_approx
+                        if test_approx == False and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                            print 'ever inside here?______________'
+                            draw_line(self.outImage, cMid12 , cMid1234 )
+                            draw_line(self.outImage, cMid1234 , cMid34 )
+                            draw_line(self.outImage, cMid14 , cMid1234 )
+                            draw_line(self.outImage, cMid1234 , cMid23 )
+                            
+                            draw_line(self.outImage, cMid23 , cMid3267 )
+                            draw_line(self.outImage, cMid3267 , cMid67 )
+                            draw_line(self.outImage, cMid37 , cMid3267 )
+                            draw_line(self.outImage, cMid3267 , cMid26 )
+                            
+                            draw_line(self.outImage, cMid12 , cMid1265 )
+                            draw_line(self.outImage, cMid1265 , cMid56 )
+                            draw_line(self.outImage, cMid15 , cMid1265 )
+                            draw_line(self.outImage, cMid1265 , cMid26 )
+                            
+                            draw_line(self.outImage, cMid14 , cMid4158 )
+                            draw_line(self.outImage, cMid4158 , cMid58 )
+                            draw_line(self.outImage, cMid48 , cMid4158 )
+                            draw_line(self.outImage, cMid4158 , cMid15 )
+                
+                            draw_line(self.outImage, cMid34 , cMid4378 )
+                            draw_line(self.outImage, cMid4378 , cMid87 )
+                            draw_line(self.outImage, cMid48 , cMid4378 )
+                            draw_line(self.outImage, cMid4378 , cMid37 )
+                            
+                            draw_line(self.outImage, cMid58 , cMid5678 )
+                            draw_line(self.outImage, cMid5678 , cMid67 )
+                            draw_line(self.outImage, cMid87 , cMid5678 )
+                            draw_line(self.outImage, cMid5678 , cMid56 )
+                                        
+                            draw_line(self.outImage, cMid1234 , cMid )
+                            draw_line(self.outImage, cMid , cMid5678 )
+                            draw_line(self.outImage, cMid4158 , cMid )
+                            draw_line(self.outImage, cMid , cMid3267 )
+                            draw_line(self.outImage, cMid4378 , cMid )
+                            draw_line(self.outImage, cMid , cMid1265 )
+                            return True
+                        elif (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                            vecCoord = []
+                            for i in range(0,len(x_list_c)):
+                                vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
+                            self.enrichNodes = vecCoord 
+                            self.ishomog = 0
+#                            print '4378'
+                            
+                        
+                        test_approx = check_nurbs_on_face(self.inImage, l4,l1,l5,l8, L4,L9,L8,L12, p1, p4, p8, p5) # 4158
+#                        print '4158',test_approx
+                        if test_approx == False and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                            print 'ever inside here?_______$$$$$$$$$$$$'
+                            draw_line(self.outImage, cMid12 , cMid1234 )
+                            draw_line(self.outImage, cMid1234 , cMid34 )
+                            draw_line(self.outImage, cMid14 , cMid1234 )
+                            draw_line(self.outImage, cMid1234 , cMid23 )
+                            
+                            draw_line(self.outImage, cMid23 , cMid3267 )
+                            draw_line(self.outImage, cMid3267 , cMid67 )
+                            draw_line(self.outImage, cMid37 , cMid3267 )
+                            draw_line(self.outImage, cMid3267 , cMid26 )
+                            
+                            draw_line(self.outImage, cMid12 , cMid1265 )
+                            draw_line(self.outImage, cMid1265 , cMid56 )
+                            draw_line(self.outImage, cMid15 , cMid1265 )
+                            draw_line(self.outImage, cMid1265 , cMid26 )
+                            
+                            draw_line(self.outImage, cMid14 , cMid4158 )
+                            draw_line(self.outImage, cMid4158 , cMid58 )
+                            draw_line(self.outImage, cMid48 , cMid4158 )
+                            draw_line(self.outImage, cMid4158 , cMid15 )
+                
+                            draw_line(self.outImage, cMid34 , cMid4378 )
+                            draw_line(self.outImage, cMid4378 , cMid87 )
+                            draw_line(self.outImage, cMid48 , cMid4378 )
+                            draw_line(self.outImage, cMid4378 , cMid37 )
+                            
+                            draw_line(self.outImage, cMid58 , cMid5678 )
+                            draw_line(self.outImage, cMid5678 , cMid67 )
+                            draw_line(self.outImage, cMid87 , cMid5678 )
+                            draw_line(self.outImage, cMid5678 , cMid56 )
+                                        
+                            draw_line(self.outImage, cMid1234 , cMid )
+                            draw_line(self.outImage, cMid , cMid5678 )
+                            draw_line(self.outImage, cMid4158 , cMid )
+                            draw_line(self.outImage, cMid , cMid3267 )
+                            draw_line(self.outImage, cMid4378 , cMid )
+                            draw_line(self.outImage, cMid , cMid1265 )
+                            return True
+                        elif (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                            vecCoord = []
+                            for i in range(0,len(x_list_c)):
+                                vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
+                            self.enrichNodes = vecCoord 
+                            self.ishomog = 0
+#                            print '4158'
+                            
+                        test_approx = check_nurbs_on_face(self.inImage, l5,l6,l7,l8, L5,L6,L7,L8, p5, p6, p7, p8) # 5678
+                        
+                        if test_approx == False:
+                            print '5678', test_approx, abs(p1.x-p2.x),  abs(p1.y-p4.y),  abs(p1.z-p5.z)
+                            print abs(p1.x-p2.x) >= 2*MIN_SIZE_X, abs(p1.y-p4.y) >= 2*MIN_SIZE_Y, abs(p1.z - p5.z)>= 2*MIN_SIZE_Z
+                        if test_approx == False and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                            print 'ever inside here?!!!!!!!!+++++++++++++++++++++++++'
+                            draw_line(self.outImage, cMid12 , cMid1234 )
+                            draw_line(self.outImage, cMid1234 , cMid34 )
+                            draw_line(self.outImage, cMid14 , cMid1234 )
+                            draw_line(self.outImage, cMid1234 , cMid23 )
+                            
+                            draw_line(self.outImage, cMid23 , cMid3267 )
+                            draw_line(self.outImage, cMid3267 , cMid67 )
+                            draw_line(self.outImage, cMid37 , cMid3267 )
+                            draw_line(self.outImage, cMid3267 , cMid26 )
+                            
+                            draw_line(self.outImage, cMid12 , cMid1265 )
+                            draw_line(self.outImage, cMid1265 , cMid56 )
+                            draw_line(self.outImage, cMid15 , cMid1265 )
+                            draw_line(self.outImage, cMid1265 , cMid26 )
+                            
+                            draw_line(self.outImage, cMid14 , cMid4158 )
+                            draw_line(self.outImage, cMid4158 , cMid58 )
+                            draw_line(self.outImage, cMid48 , cMid4158 )
+                            draw_line(self.outImage, cMid4158 , cMid15 )
+                
+                            draw_line(self.outImage, cMid34 , cMid4378 )
+                            draw_line(self.outImage, cMid4378 , cMid87 )
+                            draw_line(self.outImage, cMid48 , cMid4378 )
+                            draw_line(self.outImage, cMid4378 , cMid37 )
+                            
+                            draw_line(self.outImage, cMid58 , cMid5678 )
+                            draw_line(self.outImage, cMid5678 , cMid67 )
+                            draw_line(self.outImage, cMid87 , cMid5678 )
+                            draw_line(self.outImage, cMid5678 , cMid56 )
+                                        
+                            
+                            draw_line(self.outImage, cMid1234 , cMid )
+                            draw_line(self.outImage, cMid , cMid5678 )
+                            draw_line(self.outImage, cMid4158 , cMid )
+                            draw_line(self.outImage, cMid , cMid3267 )
+                            draw_line(self.outImage, cMid4378 , cMid )
+                            draw_line(self.outImage, cMid , cMid1265 )
+                            return True
+                        elif (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
+                            vecCoord = []
+                            for i in range(0,len(x_list_c)):
+                                vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
+                            self.enrichNodes = vecCoord 
+                            self.ishomog = 0
+#                            print '5678'
+  
                                             
 #                # NW
 #                if (l1==0 and l2==1 and l3==1 and l4==0) and (abs(p1.x-p2.x) < 2*MIN_SIZE) :
@@ -893,42 +1226,6 @@ def draw_interface(outImage, inImage, tree_list, masterNode):
             L11 = search_in(LIST,p3,p7,inImage)
             L12 = search_in(LIST,p4,p8,inImage)
 
-#            if len(L1) >= 1:
-#                L1 = L1[0]
-#
-#            if len(L2) >= 1:
-#                L2 = L2[0]
-#
-#            if len(L3) >= 1:
-#                L3 = L3[0]
-#
-#            if len(L4) >= 1:
-#                L4 = L4[0]
-#                                
-#            if len(L5) >= 1:
-#                L5 = L5[0]
-#                                
-#            if len(L6) >= 1:
-#                L6 = L6[0]
-#                                
-#            if len(L7) >= 1:
-#                L7 = L7[0]
-#                                
-#            if len(L8) >= 1:
-#                L8 = L8[0]
-#                                
-#            if len(L9) >= 1:
-#                L9 = L9[0]
-#                                
-#            if len(L10) >= 1:
-#                L10 = L10[0]
-#                                
-#            if len(L11) >= 1:
-#                L11 = L11[0]
-#                                
-#            if len(L12) >= 1:
-#                L12 = L12[0]
-                                
             if NURBS_ON == 0:
                 draw_plane_connections(outImage, l1,l2,l3,l4, L1,L2,L3,L4) # 1234
                 draw_plane_connections(outImage, l1,l2,l6,l5, L1,L10,L5,L9) # 1265
@@ -937,7 +1234,6 @@ def draw_interface(outImage, inImage, tree_list, masterNode):
                 draw_plane_connections(outImage, l4,l1,l5,l8, L4,L9,L8,L12) # 4158
                 draw_plane_connections(outImage, l5,l6,l7,l8, L5,L6,L7,L8) # 5678
             else:
-                root_i.printcube()
                 draw_nurbs_on_face(outImage, inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1, p2, p3, p4) # 1234
                 draw_nurbs_on_face(outImage, inImage, l1,l2,l6,l5, L1,L10,L5,L9, p1, p2, p6, p5) # 1265
                 draw_nurbs_on_face(outImage, inImage, l3,l2,l6,l7, L2,L10,L6,L11, p2, p3, p7, p6) # 3267
@@ -1013,13 +1309,13 @@ if __name__ == "__main__":
     print "Reading image in..."
     inputImage = sitk.ReadImage("dataset/fibers_512x256.dcm")
     outputImage = sitk.ReadImage("dataset/fibers_512x256.dcm")
-#    inputImage = sitk.ReadImage("dataset/channels_512x256.dcm")
-#    outputImage = sitk.ReadImage("dataset/channels_512x256.dcm")
+    inputImage = sitk.ReadImage("dataset/channels_512x512.dcm")
+    outputImage = sitk.ReadImage("dataset/channels_512x512.dcm")
 
 
 #    sitk.WriteImage(inputImage,"dataset/orig_mesh_fibers512x256.vtk");
     
-    nameOutputImage = "dataset/outChannels256-working.vtk"
+    nameOutputImage = "dataset/outChannels512-working.vtk"
 #    nameOutputImage = "dataset/out_mesh.vtk" 
  
     

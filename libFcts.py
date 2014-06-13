@@ -2033,18 +2033,98 @@ def Nurbs_horizontal_case(image,p1,p2,p3,p4,L2,L4, same_x, same_y, same_z, L):
         return [t,P,x_is_F_of_y, True]
     else:
         return [t,P,x_is_F_of_y, False]
+
     
-def draw_nurbs_on_face(image, inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1,p2,p3,p4):
+def check_nurbs_on_face(inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1,p2,p3,p4):
     
     same_x = False
     same_y = False
     same_z = False
     
-    print l1, l2, l3, l4
-    print p1.x, p1.y, p1.z
-    print p2.x, p2.y, p2.z
-    print p3.x, p3.y, p3.z
-    print p4.x, p4.y, p4.z
+    if p1.x == p2.x and p2.x == p3.x and p3.x == p4.x:
+        np1 = Coordinate2D(p1.y, p1.z)
+        np2 = Coordinate2D(p2.y, p2.z)
+        np3 = Coordinate2D(p3.y, p3.z)
+        np4 = Coordinate2D(p4.y, p4.z)
+        same_x = True
+        
+    if p1.y == p2.y and p2.y == p3.y and p3.y == p4.y:
+        np1 = Coordinate2D(p1.x, p1.z)
+        np2 = Coordinate2D(p2.x, p2.z)
+        np3 = Coordinate2D(p3.x, p3.z)
+        np4 = Coordinate2D(p4.x, p4.z)
+        same_y = True
+
+    if p1.z == p2.z and p2.z == p3.z and p3.z == p4.z:
+        np1 = Coordinate2D(p1.x, p1.y)
+        np2 = Coordinate2D(p2.x, p2.y)
+        np3 = Coordinate2D(p3.x, p3.y)
+        np4 = Coordinate2D(p4.x, p4.y)
+        same_z = True
+        
+    
+    # NW case
+    if (l1==0 and l2==1 and l3==1 and l4==0) and L1.x != -100 and L4.x != -100:
+        if coords_not_equal(L1,L4):
+            [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L1, L4)  
+
+            [t,P,x_is_F_of_y,test_approx] = Nurbs_NW_case(inImage,np1,np2,np3,np4,nP2,nP1,same_x, same_y, same_z, L1)
+            if test_approx == False:
+                return False
+            
+    # NE case
+    if (l1==0 and l2==0 and l3==1 and l4==1) and L1.x != -100 and L2.x != -100:
+        if coords_not_equal(L1,L2):
+            [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L1, L2)
+            
+            [t,P,x_is_F_of_y,test_approx] = Nurbs_NE_case(inImage,np1,np2,np3,np4,nP1,nP2,same_x, same_y, same_z, L1)
+            if test_approx == False:
+                return False
+            
+     # SE case                        
+    if(l1==1 and l2==0 and l3==0 and l4==1) and L2.x != -100 and L3.x != -100:
+        
+        if coords_not_equal(L2,L3):
+            [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L3, L2)
+
+            [t,P,x_is_F_of_y,test_approx] = Nurbs_SE_case(inImage,np1,np2,np3,np4,nP2,nP1,same_x, same_y, same_z, L2)
+            if test_approx == False:
+                return False
+            
+     # SW case
+    if (l1==1 and l2==1 and l3==0 and l4==0) and L3.x != -100 and L4.x != -100:
+        if coords_not_equal(L3,L4):
+            [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L4, L3)
+            
+            [t,P,x_is_F_of_y,test_approx] = Nurbs_SW_case(inImage,np1,np2,np3,np4,nP2,nP1,same_x, same_y, same_z, L3)
+            if test_approx == False:
+                return False
+            
+     # vertical case
+    if (l1==0 and l2==1 and l3==0 and l4==1 ) and L1.x != -100 and L3.x != -100:
+        if coords_not_equal(L1,L3):
+            [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L1, L3)
+            
+            [t,P,x_is_F_of_y,test_approx] = Nurbs_vertical_case(inImage,np1,np2,np3,np4,nP2,nP1,same_x, same_y, same_z, L1)
+            if test_approx == False:
+                return False
+            
+   # horizontal case 
+    if (l1==True and l2==False and l3==True and l4==False) and L2.x != -100 and L4.x != -100:  
+        if coords_not_equal(L2,L4):
+            [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L4, L2)
+             
+            [t,P,x_is_F_of_y,test_approx] = Nurbs_horizontal_case(inImage,np1,np2,np3,np4,nP2,nP1,same_x, same_y, same_z, L2)
+            if test_approx == False:
+                return False
+    
+    return True
+            
+def draw_nurbs_on_face(image, inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1,p2,p3,p4):
+    
+    same_x = False
+    same_y = False
+    same_z = False
     
     if p1.x == p2.x and p2.x == p3.x and p3.x == p4.x:
         np1 = Coordinate2D(p1.y, p1.z)
@@ -2074,10 +2154,7 @@ def draw_nurbs_on_face(image, inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1,p2,p3,p4):
         L4 = L4[0]
         if coords_not_equal(L1,L4):
             [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L1, L4)  
-    #        print L1.x, L1.y, L1.z
-    #        print L4.x, L4.y, L4.z
-    #        print nP1.x, nP1.y
-    #        print nP2.x, nP2.y
+
             [t,P,x_is_F_of_y,test_approx] = Nurbs_NW_case(inImage,np1,np2,np3,np4,nP2,nP1,same_x, same_y, same_z, L1)
             draw_nurbs(image,t,P,x_is_F_of_y,np1,np2,np4, same_x, same_y, same_z, L1)
                              
@@ -2097,11 +2174,6 @@ def draw_nurbs_on_face(image, inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1,p2,p3,p4):
         L3 = L3[0]
         if coords_not_equal(L2,L3):
             [nP1, nP2] = sort_nPs(same_x, same_y, same_z, L3, L2)
-            
-            print L2.x, L2.y, L2.z
-            print L3.x, L3.y, L3.z
-            print nP1.x, nP1.y
-            print nP2.x, nP2.y
 
             [t,P,x_is_F_of_y,test_approx] = Nurbs_SE_case(inImage,np1,np2,np3,np4,nP2,nP1,same_x, same_y, same_z, L2)
             draw_nurbs(image,t,P,x_is_F_of_y,np1,np2,np4, same_x, same_y, same_z, L2)
