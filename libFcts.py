@@ -311,8 +311,15 @@ def has_inclusions(image,p1,p2,p3,p4,p5):
     zLow = min(p1.z, p5.z)
     
     areaElem = abs( (p4.y - p1.y) * (p2.x - p1.x) * (p1.z - p5.z))
-    nr_samples = int( log(PROB) / log (abs(areaElem - AREA_INCLUSION)/areaElem) )
     
+    nr_samples = int( log(PROB) / log (abs(areaElem - AREA_INCLUSION)/areaElem) )
+#    print nr_samples
+#    if p1.x == 191 and p2.x == 287 and p1.y == 0 and p4.y == 95 and p1.z == 0:
+#        print '--------'
+#        print 'nuber of samples', nr_samples
+#        print areaElem, (p4.y - p1.y), (p2.x - p1.x), (p1.z - p5.z)   
+#        print  (p4.y - p1.y) *(p2.x - p1.x) * (p1.z - p5.z) 
+        
     for i in range (1,nr_samples):
         rx = random.randint(xLow,xHigh)
         ry = random.randint(yLow,yHigh)
@@ -457,7 +464,7 @@ def linear_search(image,bbegin,eend):
 
 def in_child_k(cubes,L):
     p1,p2,p3,p4,p5,p6,p7,p8 = cubes
-    if p1.x <= L.x and L.x <= p2.x and p1.y <= L.y and L.y <= p4.y and p1.z <= L.z and L.z<p5.z:
+    if p1.x <= L.x and L.x <= p2.x and p1.y <= L.y and L.y <= p4.y and p1.z <= L.z and L.z<=p5.z:
         return True
     
     return False
@@ -469,8 +476,6 @@ def calc_plane_residual(x, y, z):
     return [resid,coeffs]
 
 def draw_plane_connections(image, l1,l2,l3,l4, L1,L2,L3,L4):
-#    print l1, l2, l3 ,l4
-#    print L1, L2, L3, L4
     
     if l1 == 0 and l2 == 0 and l3 == 1 and l4 == 1:
         if coords_not_equal(L1[0],L2[0]):
@@ -1181,6 +1186,135 @@ def isect_line_plane_v3(p0, p1, p_co, p_no, epsilon=0.000001):
         # The segment is parallel to plane
         return None
             
+
+def calc_internal_pts(x,y,z,root,Npts):
+    # x,y,z: 3 vector lists of coordinates of intersection points
+    # len(x) = len(y) = len(z)  is between 3 and 6
+    p1,p2,p3,p4,p5,p6,p7,p8 = root.cube
+    
+    # 1 = a*x + b*y + c*z
+    A = numpy.column_stack((x, y, z))
+    (coeffs, resid,rank, sing_vals) = numpy.linalg.lstsq(A, numpy.ones_like(x))
+    a = coeffs[0]
+    b = coeffs[1]
+    c = coeffs[2]
+    Normal = [a,b,c]
+    Centroid = [ (p1.x+p2.x)/2.0, (p1.y + p4.y)/2.0, (p1.z + p5.z)/2.0]
+    
+#    root.printcube()
+    
+    #intersection points of the plane with the box
+    int_pts = []
+    p12_Int = isect_line_plane_v3([p1.x,p1.y,p1.z], [p2.x, p2.y, p2.z], Centroid, Normal)
+#    print'12', p12_Int
+    if p12_Int != None:
+        if in_child_k(root.cube, Coordinate(p12_Int[0], p12_Int[1], p12_Int[2])):
+            int_pts.append(p12_Int)
+            
+    p15_Int = isect_line_plane_v3([p1.x,p1.y,p1.z], [p5.x, p5.y, p5.z], Centroid, Normal)
+#    print'15', p15_Int
+    if p15_Int != None:
+        if in_child_k(root.cube, Coordinate(p15_Int[0], p15_Int[1], p15_Int[2])):
+            int_pts.append(p15_Int)
+    
+    p14_Int = isect_line_plane_v3([p1.x,p1.y,p1.z], [p4.x, p4.y, p4.z], Centroid, Normal)
+#    print'14', p14_Int
+    if p14_Int != None:
+        if in_child_k(root.cube, Coordinate(p14_Int[0], p14_Int[1], p14_Int[2])):
+            int_pts.append(p14_Int)
+            
+    
+    p32_Int = isect_line_plane_v3([p3.x,p3.y,p3.z], [p2.x, p2.y, p2.z], Centroid, Normal)
+#    print'32', p32_Int, in_child_k(root.cube, Coordinate(p32_Int[0], p32_Int[1], p32_Int[2]))
+    if p32_Int != None:
+        if in_child_k(root.cube, Coordinate(p32_Int[0], p32_Int[1], p32_Int[2])):
+            int_pts.append(p32_Int)
+            
+    p65_Int = isect_line_plane_v3([p6.x,p6.y,p6.z], [p5.x, p5.y, p5.z], Centroid, Normal)
+#    print'65', p65_Int
+    if p65_Int != None:
+        if in_child_k(root.cube, Coordinate(p65_Int[0], p65_Int[1], p65_Int[2])):
+            int_pts.append(p65_Int)
+    
+    p85_Int = isect_line_plane_v3([p8.x,p8.y,p8.z], [p5.x, p5.y, p5.z], Centroid, Normal)
+#    print'85', p85_Int
+    if p85_Int != None:
+        if in_child_k(root.cube, Coordinate(p85_Int[0], p85_Int[1], p85_Int[2])):
+            int_pts.append(p85_Int)
+            
+    p34_Int = isect_line_plane_v3([p3.x,p3.y,p3.z], [p4.x, p4.y, p4.z], Centroid, Normal)
+    print'34', p34_Int, in_child_k(root.cube, Coordinate(p34_Int[0], p34_Int[1], p34_Int[2]))
+    if p34_Int != None:
+        if in_child_k(root.cube, Coordinate(p34_Int[0], p34_Int[1], p34_Int[2])):
+            int_pts.append(p34_Int)
+            
+    
+    p37_Int = isect_line_plane_v3([p3.x,p3.y,p3.z], [p7.x, p7.y, p7.z], Centroid, Normal)
+#    print'37', p37_Int
+    if p37_Int != None:
+        if in_child_k(root.cube, Coordinate(p37_Int[0], p37_Int[1], p37_Int[2])):
+            int_pts.append(p37_Int)
+    
+    p67_Int = isect_line_plane_v3([p6.x,p6.y,p6.z], [p7.x, p7.y, p7.z], Centroid, Normal)
+    print'67', p67_Int, in_child_k(root.cube, Coordinate(p67_Int[0], p67_Int[1], p67_Int[2]))
+    if p67_Int != None:
+        if in_child_k(root.cube, Coordinate(p67_Int[0], p67_Int[1], p67_Int[2])):
+            int_pts.append(p67_Int)
+            
+    p62_Int = isect_line_plane_v3([p6.x,p6.y,p6.z], [p2.x, p2.y, p2.z], Centroid, Normal)
+#    print'62', p62_Int
+    if p62_Int != None:
+        if in_child_k(root.cube, Coordinate(p62_Int[0], p62_Int[1], p62_Int[2])):
+            int_pts.append(p62_Int)
+            
+    p87_Int = isect_line_plane_v3([p8.x,p8.y,p8.z], [p7.x, p7.y, p7.z], Centroid, Normal)
+#    print'87', p87_Int, in_child_k(root.cube, Coordinate(p87_Int[0], p87_Int[1], p87_Int[2]))
+    if p87_Int != None:
+        if in_child_k(root.cube, Coordinate(p87_Int[0], p87_Int[1], p87_Int[2])):
+            int_pts.append(p87_Int)
+            
+    p84_Int = isect_line_plane_v3([p8.x,p8.y,p8.z], [p4.x, p4.y, p4.z], Centroid, Normal)
+#    print'84', p84_Int
+    if p84_Int != None:
+        if in_child_k(root.cube, Coordinate(p84_Int[0], p84_Int[1], p84_Int[2])):
+            int_pts.append(p84_Int)
+                    
+    print len(int_pts)
+    print int_pts
+    
+    if len(int_pts) == 4: # if there are 4 intersection points
+        ptA = int_pts[0]
+        ptB = int_pts[1]
+        ptC = int_pts[2]
+        ptD = int_pts[3]
+        
+        xmin = min( ptA[0], ptB[0], ptC[0], ptD[0])
+        xmax = max( ptA[0], ptB[0], ptC[0], ptD[0])
+        
+        ymin = min( ptA[1], ptB[1], ptC[1], ptD[1])
+        ymax = max( ptA[1], ptB[1], ptC[1], ptD[1])
+
+        zmin = min( ptA[2], ptB[2], ptC[2], ptD[2])
+        zmax = max( ptA[2], ptB[2], ptC[2], ptD[2])
+        
+        print xmin, xmax
+        print ymin, ymax
+        print zmin, zmax
+        
+        # create grid of points of size Npts x Npts
+        XX = numpy.linspace(xmin, xmax, num=Npts)
+        XX = XX[1:-1]
+        
+        YY = numpy.linspace(ymin, ymax, num=Npts)
+        YY = YY[1:-1]
+        
+        ZZ = numpy.linspace(zmin, zmax, num=Npts)
+        ZZ = ZZ[1:-1]
+        
+        print XX
+        print YY
+        print ZZ
+        
 def line_face_intersection(centroid, N, pCorner1, pCorner2, pCorner3):
 # find the intersection of the ray with a plane (face of the box)
 #     begin_line, end_line define the ray through the box
@@ -1398,8 +1532,8 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                 currentIndex1 = root_i.index
                 currentIndex2 = root_i.index
                 
-                print 'intersection points are: ', inters, len(inters)
-                root_i.printcube()
+#                print 'intersection points are: ', inters, len(inters)
+#                root_i.printcube()
                 
                 one_way = inters[0]
                 which_dir1 =  which_face(Coordinate(one_way[0],one_way[1],one_way[2]), root_i)
@@ -1416,17 +1550,17 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                 list2.append(root_i.index)
   
   
-                print 'root index:', root_i.index, 'dir1', which_dir1, 'dir2',which_dir2
+#                print 'root index:', root_i.index, 'dir1', which_dir1, 'dir2',which_dir2
                 neigh_index1 = find_neighbor_of(currentIndex1, which_dir1, masterNode)
                 neigh_index2 = find_neighbor_of(currentIndex2, which_dir2, masterNode)
-                print neigh_index1, ' ererer', neigh_index2,'555555'
+#                print neigh_index1, ' ererer', neigh_index2,'555555'
                 
                 new_inters1 = inters[0] 
                 while counter1 <= N_ELEMS:
                     
                     # find the index of the neighbor in the direction given by which_dir1
                     neigh_index1 = find_neighbor_of(currentIndex1, which_dir1, masterNode)
-                    print 'neigh index 1 inside while', neigh_index1 
+#                    print 'neigh index 1 inside while', neigh_index1 
                     if len(neigh_index1) < 1:
                         # we are going outside the image
                         break
@@ -1635,14 +1769,72 @@ def set_homog(masterNode,llist):
     for i in range(0,n):
         root = get_node_by_id(masterNode,llist[i])
 
-        if len(root.enrichNodes)>1:
-            print root.index
+#        if len(root.enrichNodes)>1:
+#            print root.index
+
+def N_12(t):
+    if t<1.0/2.0:
+        N_12 = (1 - 2 * t) * (1 - 2 * t)
+    else:
+        N_12 =  0.0
+    return N_12
+
+def N_22(t):        
+    if t<1.0/2.0:
+        N_22 = 2 * t * (2 - 3 * t)
+    else:
+        N_22 = 2 * (1 - t) * (1 - t) 
+    return N_22
+
+def N_32(t):
+    if t<1.0/2.0:
+        N_32 =  2 * t * t
+    else:
+        N_32 = (8*t - 6*t*t - 2)
+    return N_32
+
+def N_42(t):
+    if t<1.0/2.0:
+        N_42 = 0.0
+    else:
+        N_42 = (2*t - 1) * (2*t -1) 
+    return  N_42
                                             
 def Nurbs_control_points(Q):
-    R = numpy.matrix([[1.0, 0.0, 0.0, 0.0],[ 1.0/9.0, 2.0/3.0, 2.0/9.0, 0.0 ], [  0.0, 2.0/9.0, 2.0/3.0, 1.0/9.0],[ 0.0, 0.0, 0.0, 1.0] ] )
-    Q = numpy.matrix( [ [Q[0][0], Q[0][1]], [Q[1][0], Q[1][1]], [Q[2][0], Q[2][1]], [Q[3][0], Q[3][1]] ])
     
+    Q = numpy.matrix( [ [Q[0][0], Q[0][1]], [Q[1][0], Q[1][1]], [Q[2][0], Q[2][1]], [Q[3][0], Q[3][1]] ])
+    Q = Q[numpy.argsort(Q.A[:,0])]
+    R = numpy.matrix([[1.0, 0.0, 0.0, 0.0],[ 1.0/9.0, 2.0/3.0, 2.0/9.0, 0.0 ], [  0.0, 2.0/9.0, 2.0/3.0, 1.0/9.0],[ 0.0, 0.0, 0.0, 1.0] ] )
     P = numpy.linalg.solve(R,Q)
+    
+        # chord length method
+#    ssum = 1.0 * (abs(Q[1]-Q[0]) + abs(Q[2]-Q[1]) + abs(Q[3]-Q[2]))
+#    u0 = 0.0 * Q[0]
+#    u1 = u0 + abs(Q[1] - Q[0]) / ssum
+#    u2 = u1 + abs(Q[2] - Q[1]) / ssum
+#    u3 = 1.0 + u0
+#
+#    
+#    Rx = numpy.matrix([[N_12(u0[0,0]), N_22(u0[0,0]), N_32(u0[0,0]), N_42(u0[0,0])],
+#                       [N_12(u1[0,0]), N_22(u1[0,0]), N_32(u1[0,0]), N_42(u1[0,0])],
+#                       [N_12(u2[0,0]), N_22(u2[0,0]), N_32(u2[0,0]), N_42(u2[0,0])],
+#                       [N_12(u3[0,0]), N_22(u3[0,0]), N_32(u3[0,0]), N_42(u3[0,0])]])  
+#    
+#    Ry = numpy.matrix([[N_12(u0[0,1]), N_22(u0[0,1]), N_32(u0[0,1]), N_42(u0[0,1])],
+#                       [N_12(u1[0,1]), N_22(u1[0,1]), N_32(u1[0,1]), N_42(u1[0,1])],
+#                       [N_12(u2[0,1]), N_22(u2[0,1]), N_32(u2[0,1]), N_42(u2[0,1])],
+#                       [N_12(u3[0,1]), N_22(u3[0,1]), N_32(u3[0,1]), N_42(u3[0,1])]])  
+#    
+#    P = numpy.matrix([[0,0], [0,0], [0,0], [0,0]])
+#    Qx = Q[:,0]
+#    Qy = Q[:,1]
+#    
+#    Px = numpy.linalg.solve(Rx,Qx)
+#    Py = numpy.linalg.solve(Ry,Qy)
+#    
+#    P[:,0] = Px
+#    P[:,1] = Py
+
     return P
 
 def Nurbs_basis_fcts(t,P):
@@ -1732,7 +1924,7 @@ def Nurbs_NW_case(image,p1,p2,p3,p4,L1,L4, same_x, same_y, same_z, L):
         NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
         
 #    return [t,P,x_is_F_of_y]
-
+    t_step = T_STEP
     t = arange(0, 1+t_step, t_step)
     
     if find_distance2D(C,NC) <= TOL_NURBS:
@@ -1803,7 +1995,7 @@ def Nurbs_NE_case(image,p1,p2,p3,p4,L1,L2, same_x, same_y, same_z, L):
         Ny = Nurbs_basis_fcts(0.5,P[:,0])
         NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
         
-    
+    t_step = T_STEP
     t = arange(0, 1+t_step, t_step)
     
     if find_distance2D(C,NC) <= TOL_NURBS:
@@ -1874,6 +2066,7 @@ def Nurbs_SE_case(image,p1,p2,p3,p4,L2,L3, same_x, same_y, same_z, L):
         Ny = Nurbs_basis_fcts(0.5,P[:,0])
         NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
     
+    t_step = T_STEP
     t = arange(0, 1+t_step, t_step)
     
     if find_distance2D(C,NC) <= TOL_NURBS:
@@ -1947,7 +2140,7 @@ def Nurbs_SW_case(image,p1,p2,p3,p4,L3,L4, same_x, same_y, same_z, L):
         Ny = Nurbs_basis_fcts(0.5,P[:,0])
         NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
 
-    
+    t_step = T_STEP
     t = arange(0, 1+t_step, t_step)
     
     if find_distance2D(C,NC) <= TOL_NURBS:
@@ -1971,8 +2164,8 @@ def Nurbs_vertical_case(image,p1,p2,p3,p4,L1,L3, same_x, same_y, same_z, L):
     F = log_search_2d(image,p2thirds14,p2thirds23, same_x, same_y, same_z, L);
 
     # Step 2. Build the sample points vector   
-    Q = [ [L3.y, L3.x], [F.y, F.x], [E.y, E.x], [L1.y, L1.x]]
-    
+    Q = [ [L3.y, L3.x], [E.y, E.x], [F.y, F.x], [L1.y, L1.x]]
+#    Q = [ [L3.x, L3.y], [E.x, E.y], [F.x, F.y], [L1.x, L1.y]]
     # Step 3. Determine the control points
     P = Nurbs_control_points(Q)
 
@@ -1985,7 +2178,8 @@ def Nurbs_vertical_case(image,p1,p2,p3,p4,L1,L3, same_x, same_y, same_z, L):
     Nx = Nurbs_basis_fcts(0.5,P[:,1])
     Ny = Nurbs_basis_fcts(0.5,P[:,0])
     NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
-        
+       
+    t_step = T_STEP
     t = arange(0, 1+t_step, t_step)
     
     if find_distance2D(C,NC) <= TOL_NURBS:
@@ -2017,6 +2211,7 @@ def Nurbs_horizontal_case(image,p1,p2,p3,p4,L2,L4, same_x, same_y, same_z, L):
     # Step 3. Determine the control points
     P = Nurbs_control_points(Q)
 
+    t_step = T_STEP
     t_step = 1.0 / abs(p1.x - p2.x)
     
     p12 = Coordinate2D( (p1.x + p2.x)/2.0, p1.y)
