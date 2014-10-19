@@ -1,3 +1,4 @@
+# Developer: Elena Caraba, copyright 2014
 
 import SimpleITK as sitk
 from globalVars import *
@@ -99,6 +100,7 @@ D['7'] = {
           }
 
 class Coordinate(object):
+    # 3D coordinate class
     def __init__(self,x=-1,y=-1,z=-1):
         self.x = x
         self.y = y
@@ -106,21 +108,17 @@ class Coordinate(object):
         self.all = [x,y,z]
 
 class Coordinate2D(object):
+    # 2D coordinate class
     def __init__(self,x=-1,y=-1):
         self.x = x
         self.y = y
         self.all = [x,y]
         
-#class Box(object):
-#    def __init__(self, origin=(0,0,0), extent=(1,1,1), vmin, vmax):
-#        self.origin = origin
-#        self.extent = extent
-#        self.bounds[0] = vmin
-#        self.bounds[1] = vmax
             
 def search_in(my_list,pi,pj,inImage):
-    Lk_list1 = [[x[0],x[1]] in [[pi,pj],] for x in my_list] #[True, False, False, True, etc]
-    Lk_list2 = [[x[0],x[1]] in [[pj,pi],] for x in my_list] #[True, False, False, True, etc]
+    # search in a given list for coordinates
+    Lk_list1 = [[x[0],x[1]] in [[pi,pj],] for x in my_list]  
+    Lk_list2 = [[x[0],x[1]] in [[pj,pi],] for x in my_list] 
     if True in Lk_list1: #if we found it in the list:
         Lk_ind = Lk_list1.index(True)
         Lk = my_list[Lk_ind][2]
@@ -288,20 +286,13 @@ def is_in_same_bin(pxVal1, pxVal2):
 
         
 ## This function computes the probability that there is an inclusion
-## of a different material inside thie element.
+## of a different material inside this element.
 ## Given that all 4 corners are found to be homogeneous, or to belong in to
 ## the same bin, then is there any inclusion inside this element that is
 ## larger than a certain area? If so, return true, otherwise return false
 def has_inclusions(image,p1,p2,p3,p4,p5):
 
     pxVal1 = image.GetPixel(p1.x,p1.y,p1.z)
-    
-#    print ' p1,p2,p3,p4,p5'
-#    print p1.x, p1.y, p1.z
-#    print p2.x, p2.y, p2.z
-#    print p3.x, p3.y, p3.z
-#    print p4.x, p4.y, p4.z
-#    print p5.x, p5.y, p5.z
     
     xHigh = p2.x 
     xLow = p1.x    
@@ -312,13 +303,7 @@ def has_inclusions(image,p1,p2,p3,p4,p5):
     
     areaElem = abs( (p4.y - p1.y) * (p2.x - p1.x) * (p1.z - p5.z))
     
-    nr_samples = int( log(PROB) / log (abs(areaElem - AREA_INCLUSION)/areaElem) )
-#    print nr_samples
-#    if p1.x == 191 and p2.x == 287 and p1.y == 0 and p4.y == 95 and p1.z == 0:
-#        print '--------'
-#        print 'nuber of samples', nr_samples
-#        print areaElem, (p4.y - p1.y), (p2.x - p1.x), (p1.z - p5.z)   
-#        print  (p4.y - p1.y) *(p2.x - p1.x) * (p1.z - p5.z) 
+    nr_samples = int( log(PROB) / log (abs(areaElem - VOL_INCLUSION)/areaElem) )
         
     for i in range (1,nr_samples):
         rx = random.randint(xLow,xHigh)
@@ -391,7 +376,7 @@ def ends_in_same_bin_2d(image, p1, p2, same_x, same_y, same_z, L):
     return (val1 or val2)
 
 def linear_search(image,bbegin,eend):
-        
+        # linear search for interface along a line defined by bbegin and eend coordinates
         list_nodes = []
         begin = Coordinate(bbegin.x,bbegin.y, bbegin.z)
         end = Coordinate(eend.x,eend.y, eend.z)
@@ -434,35 +419,13 @@ def linear_search(image,bbegin,eend):
                             
                         old = Coordinate(next.x,next.y, next.z)
                         next = Coordinate(next.x,next.y+1, next.z)   
-#                else:
-#                    print 'bbegin', bbegin.x, bbegin.y, bbegin.z
-#                    print 'eend', eend.x, eend.y, eend.z     
                     
         return list(list_nodes)
 
 
-#def non_linear_search(image,bbegin,eend):
-#    
-#    [X,Y,Z] = bresenham_line3d(bbegin,eend)
-#    
-#    list_nodes = []
-#    dist = find_distance(bbegin, eend)
-#    
-#    if dist > 2: # if the end and beginning are more than 2 pixels apart
-#        print 'len - ', len(X)
-#        for i in range(0,len(X)-2):
-#        
-#            old = Coordinate( int(X[i]), int(Y[i]), int(Z[i]))
-#            next = Coordinate( int(X[i])+1, int(Y[i])+1, int(Z[i])+1)
-##            print old.x, old.y, old.z
-##            print next.x, next.y, next.z
-#            if not(ends_in_same_bin(image,next,old)) :                    
-#
-#                list_nodes = list_nodes + [Coordinate(next.x,next.y, next.z)]
-#  
-#    return list_nodes
 
 def in_child_k(cubes,L):
+    # check  if coordinate L is inside element cubes
     p1,p2,p3,p4,p5,p6,p7,p8 = cubes
     if p1.x <= L.x and L.x <= p2.x and p1.y <= L.y and L.y <= p4.y and p1.z <= L.z and L.z<=p5.z:
         return True
@@ -470,13 +433,14 @@ def in_child_k(cubes,L):
     return False
 
 def calc_plane_residual(x, y, z):
+    #calculate residual and coefficients of planar least square approximation
     # 1 = a*x + b*y + c*z
     a = numpy.column_stack((x, y, z))
     (coeffs, resid,rank, sing_vals) = numpy.linalg.lstsq(a, numpy.ones_like(x))
     return [resid,coeffs]
 
 def draw_plane_connections(image, l1,l2,l3,l4, L1,L2,L3,L4):
-    
+    # draw the planar least square approx of interface
     if l1 == 0 and l2 == 0 and l3 == 1 and l4 == 1:
         if coords_not_equal(L1[0],L2[0]):
             draw_line(image,L1[0],L2[0])
@@ -503,6 +467,7 @@ def draw_plane_connections(image, l1,l2,l3,l4, L1,L2,L3,L4):
 
     
 def set_interval(imSize,level):
+    # create uniform grid based on level of recursion
     my_arr = [0,imSize-1]
     
     for i in range(0,level):
@@ -580,7 +545,7 @@ def find_neighbor(index,direction):
     return str("".join(llist_str))
   
 def find_neighbor_of(index, direction, masterNode):
-    
+    # find neighbor of element given index and direction
     root = get_node_by_id(masterNode, index)
     p1,p2,p3,p4,p5,p6,p7,p8 = root.cube
     
@@ -663,7 +628,7 @@ def find_neighbor_of(index, direction, masterNode):
           
 def get_node_by_id(node,id):
         # returns node, given index 
-        # index could be ['00101'], thus it'a list
+        # index could be ['00101'], thus it's a list
         
         index = id[0]
         ll = len(index)
@@ -700,7 +665,8 @@ def get_list_of_nodes(tree, root, masterNode,llist):
     
     
     
-def it_exists(index,masterNode):      
+def it_exists(index,masterNode):   
+    # check if node of given index exists in the tree masterNode    
     llen = len(index)
     child = masterNode
     for i in range(0,llen):
@@ -736,9 +702,6 @@ def ghost_nodes_enrichment_nodes(tree, root, masterNode):
 # this function triggers refinement when both an interface node and a hanging node
 # are present on an edge or face of an element
         p1,p2,p3,p4,p5,p6,p7,p8 = root.cube
-            
-#        if p1.x>=192 and p2.x<=254 and p1.y >=384 and p4.y<=446 and p1.z >=0 and p5.z <=62:
-#            print root.index
             
         up_has_children = False
         down_has_children = False
@@ -789,14 +752,6 @@ def ghost_nodes_enrichment_nodes(tree, root, masterNode):
             ru_has_children = neigh_has_children(root,masterNode,'RU')
             rd_has_children = neigh_has_children(root,masterNode,'RD')
                     
-#            if p1.x>=192 and p2.x<=254 and p1.y >=384 and p4.y<=446 and p1.z >=0 and p5.z <=62:
-#                print root.index
-#                print up_has_children,down_has_children ,left_has_children ,right_has_children ,back_has_children , front_has_children
-#                print rb_has_children, rf_has_children,lb_has_children,lf_has_children 
-#                print ub_has_children,uf_has_children ,db_has_children,df_has_children
-#                print  ld_has_children, lu_has_children, ru_has_children,rd_has_children 
-                
-#            print 'ever here?'        
             # if the node has interface nodes and its neighbors have children, 
             # we need to subdivide
             if (len(root.enrichNodes) > 0 and 
@@ -814,7 +769,6 @@ def ghost_nodes_enrichment_nodes(tree, root, masterNode):
                  ru_has_children == True or rd_has_children == True
                  
                  )):
-#                print 'what about here?'
 
                 root.divideOnce()      
 
@@ -839,6 +793,7 @@ def coords_not_equal(p1,p2):
     if p1.x == p2.x and p1.y == p2.y and p1.z == p2.z:
         return 0
     return 1
+
 def neigh_has_grandchildren(root, masterNode, direction, whichChildren): 
     
     neigh_index = str(find_neighbor_of(root.index,direction,masterNode))    
@@ -1087,7 +1042,6 @@ def k_neighbor_rule(tree, root,masterNode):
             if k2_counter >= k2_CONST:
                 root.divideOnce()                
                         
-
                                                                                                                         
         if root.children[0] != None:
             k_neighbor_rule(tree,root.children[0],masterNode)
@@ -1107,7 +1061,7 @@ def k_neighbor_rule(tree, root,masterNode):
             k_neighbor_rule(tree,root.children[7],masterNode)
 
 def opposite_direction(direc):
-# swap direction - look oppposite
+# swap direction - look opposite
     N_len = len(direc)    
     direction = list(direc)    
     new_dir = list(' '* N_len)
@@ -1188,6 +1142,7 @@ def isect_line_plane_v3(p0, p1, p_co, p_no, epsilon=0.000001):
             
 
 def calc_internal_pts(x,y,z,root,Npts):
+    # function to determin internal points to be used with Coons NURBS patch
     # x,y,z: 3 vector lists of coordinates of intersection points
     # len(x) = len(y) = len(z)  is between 3 and 6
     p1,p2,p3,p4,p5,p6,p7,p8 = root.cube
@@ -1201,86 +1156,70 @@ def calc_internal_pts(x,y,z,root,Npts):
     Normal = [a,b,c]
     Centroid = [ (p1.x+p2.x)/2.0, (p1.y + p4.y)/2.0, (p1.z + p5.z)/2.0]
     
-#    root.printcube()
-    
     #intersection points of the plane with the box
     int_pts = []
     p12_Int = isect_line_plane_v3([p1.x,p1.y,p1.z], [p2.x, p2.y, p2.z], Centroid, Normal)
-#    print'12', p12_Int
     if p12_Int != None:
         if in_child_k(root.cube, Coordinate(p12_Int[0], p12_Int[1], p12_Int[2])):
             int_pts.append(p12_Int)
             
     p15_Int = isect_line_plane_v3([p1.x,p1.y,p1.z], [p5.x, p5.y, p5.z], Centroid, Normal)
-#    print'15', p15_Int
     if p15_Int != None:
         if in_child_k(root.cube, Coordinate(p15_Int[0], p15_Int[1], p15_Int[2])):
             int_pts.append(p15_Int)
     
     p14_Int = isect_line_plane_v3([p1.x,p1.y,p1.z], [p4.x, p4.y, p4.z], Centroid, Normal)
-#    print'14', p14_Int
     if p14_Int != None:
         if in_child_k(root.cube, Coordinate(p14_Int[0], p14_Int[1], p14_Int[2])):
             int_pts.append(p14_Int)
             
     
     p32_Int = isect_line_plane_v3([p3.x,p3.y,p3.z], [p2.x, p2.y, p2.z], Centroid, Normal)
-#    print'32', p32_Int, in_child_k(root.cube, Coordinate(p32_Int[0], p32_Int[1], p32_Int[2]))
     if p32_Int != None:
         if in_child_k(root.cube, Coordinate(p32_Int[0], p32_Int[1], p32_Int[2])):
             int_pts.append(p32_Int)
             
     p65_Int = isect_line_plane_v3([p6.x,p6.y,p6.z], [p5.x, p5.y, p5.z], Centroid, Normal)
-#    print'65', p65_Int
     if p65_Int != None:
         if in_child_k(root.cube, Coordinate(p65_Int[0], p65_Int[1], p65_Int[2])):
             int_pts.append(p65_Int)
     
     p85_Int = isect_line_plane_v3([p8.x,p8.y,p8.z], [p5.x, p5.y, p5.z], Centroid, Normal)
-#    print'85', p85_Int
     if p85_Int != None:
         if in_child_k(root.cube, Coordinate(p85_Int[0], p85_Int[1], p85_Int[2])):
             int_pts.append(p85_Int)
             
     p34_Int = isect_line_plane_v3([p3.x,p3.y,p3.z], [p4.x, p4.y, p4.z], Centroid, Normal)
-    print'34', p34_Int, in_child_k(root.cube, Coordinate(p34_Int[0], p34_Int[1], p34_Int[2]))
     if p34_Int != None:
         if in_child_k(root.cube, Coordinate(p34_Int[0], p34_Int[1], p34_Int[2])):
             int_pts.append(p34_Int)
             
     
     p37_Int = isect_line_plane_v3([p3.x,p3.y,p3.z], [p7.x, p7.y, p7.z], Centroid, Normal)
-#    print'37', p37_Int
     if p37_Int != None:
         if in_child_k(root.cube, Coordinate(p37_Int[0], p37_Int[1], p37_Int[2])):
             int_pts.append(p37_Int)
     
     p67_Int = isect_line_plane_v3([p6.x,p6.y,p6.z], [p7.x, p7.y, p7.z], Centroid, Normal)
-    print'67', p67_Int, in_child_k(root.cube, Coordinate(p67_Int[0], p67_Int[1], p67_Int[2]))
     if p67_Int != None:
         if in_child_k(root.cube, Coordinate(p67_Int[0], p67_Int[1], p67_Int[2])):
             int_pts.append(p67_Int)
             
     p62_Int = isect_line_plane_v3([p6.x,p6.y,p6.z], [p2.x, p2.y, p2.z], Centroid, Normal)
-#    print'62', p62_Int
     if p62_Int != None:
         if in_child_k(root.cube, Coordinate(p62_Int[0], p62_Int[1], p62_Int[2])):
             int_pts.append(p62_Int)
             
     p87_Int = isect_line_plane_v3([p8.x,p8.y,p8.z], [p7.x, p7.y, p7.z], Centroid, Normal)
-#    print'87', p87_Int, in_child_k(root.cube, Coordinate(p87_Int[0], p87_Int[1], p87_Int[2]))
     if p87_Int != None:
         if in_child_k(root.cube, Coordinate(p87_Int[0], p87_Int[1], p87_Int[2])):
             int_pts.append(p87_Int)
             
     p84_Int = isect_line_plane_v3([p8.x,p8.y,p8.z], [p4.x, p4.y, p4.z], Centroid, Normal)
-#    print'84', p84_Int
     if p84_Int != None:
         if in_child_k(root.cube, Coordinate(p84_Int[0], p84_Int[1], p84_Int[2])):
             int_pts.append(p84_Int)
                     
-    print len(int_pts)
-    print int_pts
     
     if len(int_pts) == 4: # if there are 4 intersection points
         ptA = int_pts[0]
@@ -1297,9 +1236,6 @@ def calc_internal_pts(x,y,z,root,Npts):
         zmin = min( ptA[2], ptB[2], ptC[2], ptD[2])
         zmax = max( ptA[2], ptB[2], ptC[2], ptD[2])
         
-        print xmin, xmax
-        print ymin, ymax
-        print zmin, zmax
         
         # create grid of points of size Npts x Npts
         XX = numpy.linspace(xmin, xmax, num=Npts)
@@ -1311,9 +1247,8 @@ def calc_internal_pts(x,y,z,root,Npts):
         ZZ = numpy.linspace(zmin, zmax, num=Npts)
         ZZ = ZZ[1:-1]
         
-        print XX
-        print YY
-        print ZZ
+
+        # to be implemented: NORMALS through these points
         
 def line_face_intersection(centroid, N, pCorner1, pCorner2, pCorner3):
 # find the intersection of the ray with a plane (face of the box)
@@ -1354,27 +1289,6 @@ def intervalcheck(a,b,c):
     
 def which_face(L, root):
             
-#        local_point = numpy.array(local_point)
-#        def_points = numpy.concatenate((numpy.array(box_origin), numpy.array(box_extent)))
-#
-#        print 'def points', def_points
-#        surface_id_array = [0,0,0,0,0,0]
-#          
-#        for i in range(0,3):
-#            if cmp_floats(def_points[i], local_point[i]):
-#                print 'first if'
-#                for j in range(0,3):
-#                    print intervalcheck(def_points[j],local_point[j],def_points[j+3]), def_points[j],local_point[j],def_points[j+3]
-#                    if intervalcheck(def_points[j],local_point[j],def_points[j+3]):
-#                        surface_id_array[i] = 1
-#                        
-#                   
-#            if cmp_floats(def_points[i+3], local_point[i]):
-#                print 'second if'
-#                for j in range(0,3):
-#                    print intervalcheck(def_points[j],local_point[j],def_points[j+3]), def_points[j],local_point[j],def_points[j+3]
-#                    if intervalcheck(def_points[j],local_point[j],def_points[j+3]):
-#                        surface_id_array[i+3] = 1                        
         p1,p2,p3,p4,p5,p6,p7,p8 = root.cube        
         x1 = p1.x
         x2 = p2.x
@@ -1400,20 +1314,6 @@ def which_face(L, root):
         if L.z == z2:
             surface_name.append('D')
 
-        
-                    
-#        if surface_id_array[0] == 1:
-#            surface_name.append('L')
-#        if surface_id_array[1] == 1:
-#            surface_name.append('D')
-#        if surface_id_array[2] == 1:
-#            surface_name.append('B')
-#        if surface_id_array[3] == 1:
-#            surface_name.append('R')
-#        if surface_id_array[4] == 1:
-#            surface_name.append('U')
-#        if surface_id_array[5] == 1:
-#            surface_name.append('F')
         
         return_id = ''
         
@@ -1483,8 +1383,6 @@ def stress_concentration_constraint(tree_list, masterNode, image):
         p1,p2,p3,p4,p5,p6,p7,p8 = root_i.cube
         # for each non-hom node in the tree
         if len(root_i.enrichNodes)>1:
-#            print len(root_i.enrichNodes)
-#            print root_i.enrichNodes[0], root_i.enrichNodes[1]
 
             x_list_c = []
             y_list_c = []
@@ -1514,27 +1412,17 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                 
                 [res,coeffs] = calc_plane_residual(x_list_c, y_list_c, z_list_c)
                 N = coeffs
-#                norm_n = sqrt(N[0]*N[0] + N[1]*N[1] + N[2]*N[2])
-#                N[0] = N[0]/norm_n
-#                N[1] = N[1]/norm_n
-#                N[2] = N[2]/norm_n
-#                print N
                 dx = abs(p1.x - p2.x)
                 dy = abs(p1.y - p4.y)
                 dz = abs(p1.z - p5.z)
                 
 
                 inters = line_box_intersection(root_i, centroid, N)
-#                box_origin = [p1.x,p1.y,p1.z]
-#                box_extent = [dx,dy,dz]
                 if len(inters)<2:
                     break
                 currentIndex1 = root_i.index
                 currentIndex2 = root_i.index
-                
-#                print 'intersection points are: ', inters, len(inters)
-#                root_i.printcube()
-                
+
                 one_way = inters[0]
                 which_dir1 =  which_face(Coordinate(one_way[0],one_way[1],one_way[2]), root_i)
                 counter1 = 0
@@ -1550,17 +1438,14 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                 list2.append(root_i.index)
   
   
-#                print 'root index:', root_i.index, 'dir1', which_dir1, 'dir2',which_dir2
                 neigh_index1 = find_neighbor_of(currentIndex1, which_dir1, masterNode)
                 neigh_index2 = find_neighbor_of(currentIndex2, which_dir2, masterNode)
-#                print neigh_index1, ' ererer', neigh_index2,'555555'
                 
                 new_inters1 = inters[0] 
                 while counter1 <= N_ELEMS:
                     
                     # find the index of the neighbor in the direction given by which_dir1
                     neigh_index1 = find_neighbor_of(currentIndex1, which_dir1, masterNode)
-#                    print 'neigh index 1 inside while', neigh_index1 
                     if len(neigh_index1) < 1:
                         # we are going outside the image
                         break
@@ -1671,7 +1556,6 @@ def stress_concentration_constraint(tree_list, masterNode, image):
                         if len(inters_pts) < 2:
                             list2.append(box_index2)
                             break  
-#                        print len(inters_pts)
                         inters1 = inters_pts[0]
                         inters2 = inters_pts[1]
                         
@@ -1696,7 +1580,6 @@ def stress_concentration_constraint(tree_list, masterNode, image):
 
                 full_list.append(list2)
       
-#    print full_list          
     return full_list
                 
 
@@ -1708,19 +1591,11 @@ def divide_high_stress_elements(full_list, masterNode, tree_list_of_nodes):
         llist = full_list[k]
         if len(llist) < STRESS_MIN + 2:
             last_index = str(llist[-1])
-#            
-#            print last_index
-#            print llist
-#            print full_list
-            nodee = get_node_by_id(masterNode, ['0160'])
-#            print it_exists(['0160'], masterNode)
-#            print 'Enrich Node 0160 exists:',nodee.enrichNodes
-    
-            last_node = get_node_by_id(masterNode, [str(last_index)])
-#            last_node.printcube()
 
-#            print 'are there any?',last_node.enrichNodes
-#            if not(last_node.ishomog):
+            nodee = get_node_by_id(masterNode, ['0160'])
+
+            last_node = get_node_by_id(masterNode, [str(last_index)])
+
             if [str(last_index)] in tree_list_of_nodes and len(last_node.enrichNodes)>0: 
                 if len(llist) == 2:
                     node1 = get_node_by_id(masterNode, [str(llist[0])])
@@ -1728,21 +1603,18 @@ def divide_high_stress_elements(full_list, masterNode, tree_list_of_nodes):
                     node2 = get_node_by_id(masterNode, [str(llist[1])])
                     node2.divideOnce()
                 if len(llist) == 2 + 1:
-    #                 print 'only one homog elem in between'
                     node1 = get_node_by_id(masterNode, [str(llist[1])])
                     node1.divideOnce()
                     extra_list.append(node1)
                     
                         
                 if len(llist) == 2 + 2:
-    #                 print 'only 2 homog elems in between'
                     node1 = get_node_by_id(masterNode, [str(llist[1])])
                     node1.divideOnce()
                     node2 =  get_node_by_id(masterNode, [str(llist[2])])
                     node2.divideOnce()
                     
                 if len(llist) == 2 + 3:
-    #                 print 'only 3 homog elems in between'
                     node1 = get_node_by_id(masterNode, [str(llist[1])])
                     node2 = get_node_by_id(masterNode, [str(llist[2])])
                     node3 = get_node_by_id(masterNode, [str(llist[3])])
@@ -1769,8 +1641,6 @@ def set_homog(masterNode,llist):
     for i in range(0,n):
         root = get_node_by_id(masterNode,llist[i])
 
-#        if len(root.enrichNodes)>1:
-#            print root.index
 
 def N_12(t):
     if t<1.0/2.0:
@@ -1839,8 +1709,6 @@ def Nurbs_control_points(Q):
 
 def Nurbs_basis_fcts(t,P):
     
-#    n = len(t)
-#    for i in range(0,n):
     if t < 1.0/2.0:
         N = lambda t: P[0] * (1 - 2 * t) * (1 - 2 * t) + P[1] * 2 * t * (2 - 3 * t) + P[2] * 2 * t * t
     else:
@@ -1862,13 +1730,10 @@ def Nurbs_NW_case(image,p1,p2,p3,p4,L1,L4, same_x, same_y, same_z, L):
         p1third12 = Coordinate2D( double ((L1.x - p1.x) / 3.0) + p1.x, p1.y);
         p1third34 = Coordinate2D( p1third12.x, p4.y);
         E = log_search_2d(image,p1third12,p1third34, same_x, same_y, same_z, L);
-#        print len(E)
-#        E = E[0]
         
         p2thirds12 = Coordinate2D( double (2.0 * (L1.x - p1.x) / 3.0) + p1.x, p1.y);
         p2thirds34 = Coordinate2D(p2thirds12.x, p4.y);
         F = log_search_2d(image,p2thirds12,p2thirds34, same_x, same_y, same_z, L);
-#        F = F[0]
         
         # Step 2. Build the sample points vector   
         Q = [ [L4.x, L4.y], [E.x, E.y], [F.x, F.y], [L1.x, L1.y]]
@@ -1876,14 +1741,6 @@ def Nurbs_NW_case(image,p1,p2,p3,p4,L1,L4, same_x, same_y, same_z, L):
         # Step 3. Determine the control points
         P = Nurbs_control_points(Q)
         
-#        N = Nurbs_basis_fcts(1.0/3.0,P)
-#        pt1 =  N(1.0/3.0)
-#        pt1 = Coordinate2D(pt1[0,0], pt1[0,1])
-#        
-#        N = Nurbs_basis_fcts(2.0/3.0,P)
-#        pt2 = N(2.0/3.0)
-#        pt2 = Coordinate2D(pt2[0,0], pt2[0,1])
-#                    
         t_step = 1.0 / abs(L1.x-p1.x)
         
         # Step 4. Search for the interface along a vertical line
@@ -1923,7 +1780,6 @@ def Nurbs_NW_case(image,p1,p2,p3,p4,L1,L4, same_x, same_y, same_z, L):
         Ny = Nurbs_basis_fcts(0.5,P[:,0])
         NC = Coordinate2D( int(Nx(0.5)) , int(Ny(0.5)) )
         
-#    return [t,P,x_is_F_of_y]
     t_step = T_STEP
     t = arange(0, 1+t_step, t_step)
     
@@ -2003,7 +1859,6 @@ def Nurbs_NE_case(image,p1,p2,p3,p4,L1,L2, same_x, same_y, same_z, L):
     else:
         return [t,P,x_is_F_of_y, False]
     
-#    return [t,P,x_is_F_of_y]
 
 def Nurbs_SE_case(image,p1,p2,p3,p4,L2,L3, same_x, same_y, same_z, L):
     
@@ -2074,7 +1929,6 @@ def Nurbs_SE_case(image,p1,p2,p3,p4,L2,L3, same_x, same_y, same_z, L):
     else:
         return [t,P,x_is_F_of_y, False]
                     
-#    return [t,P,x_is_F_of_y]
 
 
 def Nurbs_SW_case(image,p1,p2,p3,p4,L3,L4, same_x, same_y, same_z, L):
@@ -2165,7 +2019,6 @@ def Nurbs_vertical_case(image,p1,p2,p3,p4,L1,L3, same_x, same_y, same_z, L):
 
     # Step 2. Build the sample points vector   
     Q = [ [L3.y, L3.x], [E.y, E.x], [F.y, F.x], [L1.y, L1.x]]
-#    Q = [ [L3.x, L3.y], [E.x, E.y], [F.x, F.y], [L1.x, L1.y]]
     # Step 3. Determine the control points
     P = Nurbs_control_points(Q)
 
@@ -2231,7 +2084,7 @@ def Nurbs_horizontal_case(image,p1,p2,p3,p4,L2,L4, same_x, same_y, same_z, L):
 
     
 def check_nurbs_on_face(inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1,p2,p3,p4):
-    
+    # check how well the NURBS is approximated
     same_x = False
     same_y = False
     same_z = False
@@ -2484,7 +2337,6 @@ def log_search_2d(image,bbegin,eend, same_x, same_y, same_z, L):
 
         mid.x = int(mid.x)
         mid.y = int(mid.y)
-        #return Coordinate(int(mid.x), int(mid.y))
         return mid
                     
 

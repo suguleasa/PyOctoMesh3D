@@ -1,3 +1,6 @@
+# Developer: Elena Caraba, copyright 2014
+
+
 import numpy
 import SimpleITK as sitk
 from libFcts import *
@@ -6,8 +9,16 @@ from globalVars import *
 import scipy
 #import external.transformations as tf
   
+
+# NOTES:
+# system of coordinates is [0,imageSize], thus always positive values
+
+  
 LIST = []      
 class Node():
+# class for creating the nodes in the mesh tree
+# a node is a mesh element: cube or hexahedral elements      
+    
     ROOT = 0
     BRANCH = 1
     LEAF = 2
@@ -17,6 +28,8 @@ class Node():
 
         self.imsize = imageSize
         self.parent = parent
+        
+        #if a node is subdivided will have 8 children
         self.children = [None, None, None, None,None,None,None,None]
         self.has_children = False
 
@@ -33,7 +46,10 @@ class Node():
         self.ishomog = 1
 #        self.tlist = [] # contains the numbering of the nodes in the element
 #        self.tpix = []       
-        self.nsew = [0,0,0,0]
+        self.nsew = [0,0,0,0] # north, south, east, west
+        
+        # hanging nodes coordinates. 
+        # initially, there are no hanging nodes, thus coordinates are all set to negatives
         self.hn = [Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1),Coordinate(-1,-1)]
         
         self.cube = cube 
@@ -41,24 +57,13 @@ class Node():
         self.index = '-1'
         
         [p1,p2,p3,p4,p5,p6,p7,p8] = cube
-#        
-####        dx = abs(p1.x-p2.x)+1
-####        dy = abs(p1.y-p4.y)+1
-#####        ind_x = round(imageSize[0]/dx)
-#####        ind_y = round(imageSize[1]/dy)
-####        self.i = p2.x / dx
-####        self.j = p4.y / dy
-#
-#
-##        self.mat = 'Epoxy'
+
         self.enrichNodes = []
-#        
+        
         if self.parent == None:
             self.type = Node.ROOT
-#        #elif abs(p1.x - p2.x) <= MIN_SIZE:
         elif ( abs(p1.x - p2.x) <= MIN_SIZE_X or 
             (self.children[0]==None and self.children[1]== None and self.children[2] == None and self.children[3] == None) ):
-#            print self.cube
             self.type = Node.LEAF
         else:
             self.type = Node.BRANCH
@@ -66,6 +71,7 @@ class Node():
         self.outImage = outImage
         self.inImage = inImage
         
+        # setting up the location code of each element
         Lx = set_interval(imageSize[0],self.depth)
         Ly = set_interval(imageSize[1],self.depth)
         Lz = set_interval(imageSize[2],self.depth)
@@ -78,8 +84,6 @@ class Node():
     # this method subdivides a node recursively if some
     # division criterion is satisfied
     
-#        if self.type == Node.LEAF:
-#            return
         
         p1,p2,p3,p4,p5,p6,p7,p8 = self.cube
         cMid12 = find_mid_point(p1,p2)
@@ -118,22 +122,19 @@ class Node():
         cubes.append((cMid, cMid3267, cMid37, cMid4378, cMid5678, cMid67, p7, cMid87)) # SE bottom child
         
         for n in range(len(cubes)):
+             #get division criterion: e.g. element too large
             span = self.division_criterion(cubes[n], self.inImage, self.outImage)
 
             if span == True:
-#                print 'criterion is TRUE'
+                 # create the new children
                 self.children[n] = self.getinstance(cubes[n], self.inImage, self.outImage,imageSize)
-#                print self.index
-#                print self.children[n].i, self.children[n].j, self.children[n].k
-#                print tomorton(self.children[n].i, self.children[n].j, self.children[n].k)
-#                print  str(convert_to_base_8(tomorton(self.children[n].i, self.children[n].j, self.children[n].k)))
                 self.children[n].index = str(convert_to_base_8(tomorton(self.children[n].i, self.children[n].j, self.children[n].k)))
                 diff_level = abs(len(self.children[n].index) - self.children[n].depth)
                 if diff_level != 0:
                     self.children[n].index = '0'*diff_level + self.children[n].index
-#                    print self.children[n].index
                     
                 p1r,p2r,p3r,p4r,p5r,p6r,p7r,p8r = cubes[n]
+                # Li's are for searches along edges when first change in pixel is detected
                 L1 = search_in(LIST,p1r,p2r,self.inImage)
                 L2 = search_in(LIST,p2r,p3r,self.inImage)
                 L3 = search_in(LIST,p4r,p3r,self.inImage)
@@ -149,10 +150,9 @@ class Node():
                 L11 = search_in(LIST,p3r,p7r,self.inImage)
                 L12 = search_in(LIST,p4r,p8r,self.inImage)
  
-#                 print len(L1), len(L2), len(L3), len(L4), len(L5), len(L6), len(L7), len(L8), len(L9), len(L10), len(L11), len(L12)
-
                 list_enrichNodes = []
                 
+                # checking if an edge is crossed only one time by an interface
                 if len(L1) == 1:
                     L1 = L1[0]
                     if in_child_k(cubes[n],L1) == True:
@@ -234,7 +234,8 @@ class Node():
             
                         
     def divideOnce(self): 
-    # this method divides once a given node
+    # this method divides a given node only once
+    # is similar to subdivide from above
         
         p1,p2,p3,p4,p5,p6,p7,p8 = self.cube
         cMid12 = find_mid_point(p1,p2)
@@ -394,6 +395,7 @@ class Node():
             
             
     def printcube(self):
+        # print coordinates for cube corners
         print [self.cube[0].x, self.cube[1].x, self.cube[0].y, self.cube[3].y, self.cube[0].z, self.cube[4].z]
 
     def getinstance(self, cube, inImage, outImage):
@@ -412,6 +414,7 @@ class CNode(Node):
 
 
     def division_criterion(self, cube, inImage, outImage):
+    # here is where the division criterions are implemented
         
         p1,p2,p3,p4,p5,p6,p7,p8 = self.cube
         
@@ -440,11 +443,11 @@ class CNode(Node):
         cMid4378 = find_mid_point(p3,p8)
         cMid = find_mid_point(p2,p8) # center of the cube
         
-#        print abs(p1.x - p2.x), abs(p1.y - p4.y),  abs(p1.z - p5.z)
-#        print abs(p1.x-p2.x), (p1.y-p4.y), (p1.z-p5.z)
+        # element cannot be smaller than a given alternative minimum size
         if abs(p1.x - p2.x) < ALT_MIN_SIZE or abs(p1.y - p4.y) < ALT_MIN_SIZE or abs(p1.z - p5.z) < ALT_MIN_SIZE:
             return False
-        
+
+        # element cannot be larger than a given size        
         if abs(p1.x - p2.x) > MAX_SIZE_X or abs(p1.y - p4.y) > MAX_SIZE_Y or abs(p1.z - p5.z) > MAX_SIZE_Z:          
             
             draw_line(self.outImage, cMid12 , cMid1234 )
@@ -487,6 +490,7 @@ class CNode(Node):
             
             return True
         else:
+            # element is at MAX_SIZE or smaller:
             pxVal1 = self.inImage.GetPixel(p1.x,p1.y,p1.z)
             pxVal2 = self.inImage.GetPixel(p2.x,p2.y,p2.z)
             pxVal3 = self.inImage.GetPixel(p3.x,p3.y,p3.z)
@@ -499,9 +503,6 @@ class CNode(Node):
             # are the 8 corners of the element in the same bin? i.e. homogeneous?
             isHomogeneous = eight_corners_test(pxVal1, pxVal2, pxVal3, pxVal4, pxVal5, pxVal6, pxVal7, pxVal8)
 
-#            if p1.x == 191 and p2.x == 287 and p1.y == 0 and p4.y == 95 and p1.z == 0:
-#                print 'isHomogeneous', isHomogeneous, 'has inclusions', has_inclusions(self.inImage,p1,p2,p3,p4,p5)
-                
             # the eight corners test fails, but is has inclusions
             if ( isHomogeneous == 1) and has_inclusions(self.inImage,p1,p2,p3,p4,p5):
                 draw_line(self.outImage, cMid12 , cMid1234 )
@@ -546,9 +547,9 @@ class CNode(Node):
             
             # if the eight corners test fails
             if ( ( isHomogeneous == 0) and has_inclusions(self.inImage,p1,p2,p3,p4,p5) 
-#                 and (abs(p1.x-p2.x) >= MIN_SIZE_X and abs(p1.y-p4.y) >= MIN_SIZE_Y and abs(p1.z - p5.z) >= MIN_SIZE_Z)
                  ):
                 
+                # checking if ends of edges are in the same bin ox pixel colors
                 l1 = ends_in_same_bin(self.inImage,p1,p2)
                 l2 = ends_in_same_bin(self.inImage,p2,p3)
                 l3 = ends_in_same_bin(self.inImage,p4,p3)
@@ -562,6 +563,7 @@ class CNode(Node):
                 l11 = ends_in_same_bin(self.inImage,p3,p7)
                 l12 = ends_in_same_bin(self.inImage,p4,p8)
             
+                # search for the interface intersection with the edge
                 L1 = search_in(LIST,p1,p2,self.inImage)
                 L2 = search_in(LIST,p2,p3,self.inImage)
                 L3 = search_in(LIST,p4,p3,self.inImage)
@@ -588,9 +590,6 @@ class CNode(Node):
                     len(L2) > 1 or len(L4) > 1 or len(L1) > 1 or len(L3) > 1
                     or len(L5) > 1 or len(L6) > 1 or len(L7) > 1 or len(L8) > 1
                     or len(L9) > 1 or len(L10) > 1 or len(L11) > 1 or len(L12) > 1 
-#                     or len(L2) < 1 or len(L4) < 1 or len(L1) < 1 or len(L3) < 1
-#                     or len(L5) < 1 or len(L6) < 1 or len(L7) < 1 or len(L8) < 1
-#                     or len(L9) < 1 or len(L10) < 1 or len(L11) < 1 or len(L12) < 1
                      ):
                     
                     # interface croses one edge multiple times
@@ -746,11 +745,10 @@ class CNode(Node):
                     elif len(L12) == 0:
                         L12 = Coordinate(-100,-100,-100)
                     
-#                    print 'Number of element-interface intersections', count_pts_int
-                
 
                 if len(x_list_c) > 0 and  len(y_list_c) > 0 and len(z_list_c) >0:
                     if NURBS_ON == 0:
+                        # planar least square approximation
                         [res,coeffs] = calc_plane_residual(x_list_c, y_list_c, z_list_c)
                         if res <= 0.001 and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
 #                            draw_plane_connections(self.outImage, l1,l2,l3,l4, L1,L2,L3,L4) # 1234
@@ -761,6 +759,7 @@ class CNode(Node):
 #                            draw_plane_connections(self.outImage, l5,l6,l7,l8, L5,L6,L7,L8) # 5678
                             vecCoord = []
                             for i in range(0,len(x_list_c)):
+                                # add points of intersection to a list of coordinates
                                 vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
                             self.enrichNodes = vecCoord 
                             self.ishomog = 0
@@ -809,7 +808,6 @@ class CNode(Node):
                                 return True
                             
                     else: #NURBS_ON == 1
-#                        print 'NURBS are ON'
 
                         # if there are less than 3 and more than 6 intersection points, trigger refinement
                         if count_pts_int < 3 or 6 < count_pts_int :
@@ -852,11 +850,10 @@ class CNode(Node):
                             draw_line(self.outImage, cMid , cMid1265 )
                         
                             return True
-#                        else:
-#                            print 'number', count_pts_int
                 
+                        # for each face determine the NURBS and how well it's approximated
+                        
                         test_approx = check_nurbs_on_face(self.inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1, p2, p3, p4) # 1234
-#                        print '1234', test_approx
                         if test_approx == False and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
                             draw_line(self.outImage, cMid12 , cMid1234 )
                             draw_line(self.outImage, cMid1234 , cMid34 )
@@ -901,10 +898,8 @@ class CNode(Node):
                                 vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
                             self.enrichNodes = vecCoord 
                             self.ishomog = 0
-#                            print '1234'
                             
                         test_approx = check_nurbs_on_face(self.inImage, l1,l10,l5,l9, L1,L10,L5,L9, p1, p2, p6, p5) # 1265
-#                        print '1265', test_approx
                         if test_approx == False and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
                             draw_line(self.outImage, cMid12 , cMid1234 )
                             draw_line(self.outImage, cMid1234 , cMid34 )
@@ -949,11 +944,9 @@ class CNode(Node):
                                 vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
                             self.enrichNodes = vecCoord 
                             self.ishomog = 0
-#                            print '1265'
                            
  
                         test_approx =  check_nurbs_on_face(self.inImage, l2,l11,l6,l10, L2,L11,L6,L10, p2, p3, p7, p6) # 3267
-#                        print '3267',test_approx
                         if test_approx == False and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
                             draw_line(self.outImage, cMid12 , cMid1234 )
                             draw_line(self.outImage, cMid1234 , cMid34 )
@@ -998,10 +991,8 @@ class CNode(Node):
                                 vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
                             self.enrichNodes = vecCoord 
                             self.ishomog = 0
-#                            print '3267'
                         
                         test_approx = check_nurbs_on_face(self.inImage, l3,l11,l7,l12, L3,L11,L7,L12, p4, p3, p7, p8) # 4378
-#                        print '4378', test_approx
                         if test_approx == False and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
                             draw_line(self.outImage, cMid12 , cMid1234 )
                             draw_line(self.outImage, cMid1234 , cMid34 )
@@ -1046,10 +1037,8 @@ class CNode(Node):
                                 vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
                             self.enrichNodes = vecCoord 
                             self.ishomog = 0
-#                            print '4378'
                             
                         test_approx = check_nurbs_on_face(self.inImage, l4,l12,l8,l9, L4,L12,L8,L9, p1, p4, p8, p5) # 4158
-#                        print '4158',test_approx
                         if test_approx == False and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
                             draw_line(self.outImage, cMid12 , cMid1234 )
                             draw_line(self.outImage, cMid1234 , cMid34 )
@@ -1094,10 +1083,8 @@ class CNode(Node):
                                 vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
                             self.enrichNodes = vecCoord 
                             self.ishomog = 0
-#                            print '4158'
                             
                         test_approx = check_nurbs_on_face(self.inImage, l5,l6,l7,l8, L5,L6,L7,L8, p5, p6, p7, p8) # 5678
-                        
                         if test_approx == False and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
                             draw_line(self.outImage, cMid12 , cMid1234 )
                             draw_line(self.outImage, cMid1234 , cMid34 )
@@ -1143,14 +1130,11 @@ class CNode(Node):
                                 vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
                             self.enrichNodes = vecCoord 
                             self.ishomog = 0
-#                            print '5678'
-
-
                 
         return False
     
     def division_criterionOnce(self, cube, inImage, outImage):
-        
+    # function similar to division_criterion, except division is done once, not recursively
         p1,p2,p3,p4,p5,p6,p7,p8 = self.cube
         cMid12 = find_mid_point(p1,p2)
         cMid14 = find_mid_point(p1,p4)
@@ -1218,6 +1202,8 @@ class CNode(Node):
         return True
 
 class OctoTree(Node):
+#setting up the tree data structures
+
     maxdepth = 1
     leaves = []
     allnodes = []
@@ -1256,12 +1242,13 @@ class COctoTree(OctoTree):
         OctoTree.__init__(self, rootnode)
     
 def draw_interface(outImage, inImage, tree_list, masterNode):
-    
+# draw the interface 
     n = len(tree_list)
 
     # for each node in the tree:
     for i in range(0,n):
-        root_i = get_node_by_id(masterNode,tree_list[i])    
+        root_i = get_node_by_id(masterNode,tree_list[i])   
+        #if there are more than one enrichment node per element, we can connect them and draw the interface
         if len(root_i.enrichNodes) > 1:
             
             p1,p2,p3,p4,p5,p6,p7,p8 = root_i.cube
@@ -1278,7 +1265,6 @@ def draw_interface(outImage, inImage, tree_list, masterNode):
             l11 = ends_in_same_bin(inImage,p3,p7)
             l12 = ends_in_same_bin(inImage,p4,p8)
         
-#            print l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12
             
             L1 = search_in(LIST,p1,p2,inImage)
             L2 = search_in(LIST,p2,p3,inImage)
@@ -1303,11 +1289,6 @@ def draw_interface(outImage, inImage, tree_list, masterNode):
                 draw_plane_connections(outImage, l4,l9,l8,l12, L4,L9,L8,L12) # 4158
                 draw_plane_connections(outImage, l5,l6,l7,l8, L5,L6,L7,L8) # 5678
             else:
-#                if root_i.index == '10':
-#                    print root_i.index
-#                    print l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12
-#                    print L3, L4, L7, L8
-#                    root_i.printcube
 
                 # list of intersection coordinates:
                 x_list_c = []
@@ -1402,20 +1383,6 @@ def draw_interface(outImage, inImage, tree_list, masterNode):
                 draw_nurbs_on_face(outImage, inImage, l4,l12,l8,l9, L4,L12,L8,L9, p1, p4, p8, p5) # 4158
                 draw_nurbs_on_face(outImage, inImage, l5,l6,l7,l8, L5,L6,L7,L8, p5, p6, p7, p8) # 5678
   
-def write_to_vtk(masterNode, llist):
-    n = len(llist)
-    filename = 'voxel_mesh_' + str(n) + '_points.vtk'
-    target = open(filename,'w')
-    target.write('# vtk DataFile Version 3.1 \n')
-    target.write('Circle example \n')
-    target.write('ASCII \n')
-    target.write('DATASET POLYDATA \n')
-#    str1 = 'POINTS ' +  str(n) + ' FLOAT \n'
-    
-    target.write(str1)    
-    for i in range(0,n):
-        root_i = get_node_by_id(masterNode,llist[i])
-        p1,p2,p3,p4,p5,p6,p7,p8 = root.cubes
 
 def print_vtk_file(p,Usolution,plist):
     
@@ -1429,14 +1396,8 @@ def print_vtk_file(p,Usolution,plist):
     str1 = 'POINTS ' +  str(P) + ' FLOAT \n'
     target.write(str1)
 
-#    print plist
-#    print '-------------'
-#    print p
-#    print len( sum (plist, [] ) ) + len(plist)
-
     for i in range(0,P):
         stri = str(p[i,0]) + '  ' + str(p[i,1]) + '  ' + str(Usolution[i,0]) + ' \n'
-#        print 'i = ', i, ' and ',stri
         target.write(stri)
     
 
@@ -1463,36 +1424,19 @@ def print_vtk_file(p,Usolution,plist):
     target.close()
 
 if __name__ == "__main__":
-    # two_channels.dcm contains the original data
-    # img.vtk contains an empty dataset of the same dimensions with the original
-    # orig_mesh.vtk is two_channels.dcm converted to VTK format
-    # empty_mesh.vtk contains a mesh on an empty set
     print "Reading image in..."
+    #inputImage is what we read 
+    #outputImage is what we draw on
+    #nameOutputImage is what we save the drawn image on outputImage
     inputImage = sitk.ReadImage("dataset/two_fibers_512.dcm")
     outputImage = sitk.ReadImage("dataset/two_fibers_512.dcm")
-#    inputImage = sitk.ReadImage("dataset/channels_512x512.dcm")
-#    outputImage = sitk.ReadImage("dataset/channels_512x512.dcm")
-#    inputImage = sitk.ReadImage("real_data/sibat-filtered.dcm")
-#    outputImage = sitk.ReadImage("real_data/sibat-filtered.dcm")
-#    inputImage = sitk.ReadImage("real_data/sibat_filtered_170Thresh.dcm")
-#    outputImage = sitk.ReadImage("real_data/sibat_filtered_170Thresh.dcm")
-#    inputImage = sitk.ReadImage("real_data/sibat_380.dcm")
-#    outputImage = sitk.ReadImage("real_data/sibat_380.dcm")
-#    inputImage = sitk.ReadImage("real_data/microvascular400_500.dcm")
-#    outputImage = sitk.ReadImage("real_data/microvascular400_500.dcm")
-    
-#    inputImage = sitk.ReadImage("real_data/snbat-contrast.dcm")
-#    outputImage = sitk.ReadImage("real_data/snbat-contrast.dcm")
 
-
-#    sitk.WriteImage(inputImage,"dataset/orig_channels_400_500.vtk")
-#    nameOutputImage = "dataset/outfibers512x256.vtk"
     if NURBS_ON == 1:
         tname = "nurbs"
     else:
         tname = "planar"
     
-    matName = "sibat"
+    matName = "fibers"
  
     
     imageSize = inputImage.GetSize()
@@ -1511,6 +1455,8 @@ if __name__ == "__main__":
     
     
     cube = [p1,p2,p3,p4,p5,p6,p7,p8]
+    
+    # create the Octo tree
     rootNode = CNode(None,cube,inputImage,outputImage,imageSize)
     tree = COctoTree(rootNode)
     
@@ -1520,152 +1466,118 @@ if __name__ == "__main__":
 
     llist = []
     tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
-    print 'HP only refinement', len(tree_list_of_nodes)
-#    
-#    
-#    totalNumberOfNodes = tree.count_nodes(rootNode)
-#    print totalNumberOfNodes
-#    newTotalNumberOfNodes = -1
-#    while totalNumberOfNodes != newTotalNumberOfNodes:
-#         print 'No enrichment nodes and hanging nodes in the same element '
-#         totalNumberOfNodes = newTotalNumberOfNodes
-#         masterNode = rootNode
-#         ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
-#         newTotalNumberOfNodes = tree.count_nodes(rootNode)
-#         
-#    masterNode = rootNode
-#    
-#    llist = []
-#    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
-#    print 'Enrch. refinement', len(tree_list_of_nodes)
-#    
-#    totalNumberOfNodes = tree.count_nodes(rootNode)
-#    newTotalNumberOfNodes = -1
-#    print totalNumberOfNodes
-#         
-#    while totalNumberOfNodes != newTotalNumberOfNodes:
-#        print 'Rebalancing tree by multiple passes '
-#        masterNode = rootNode
-#        totalNumberOfNodes = newTotalNumberOfNodes
-#        tree_balance(tree,rootNode,masterNode)
-#        newTotalNumberOfNodes = tree.count_nodes(rootNode)
-#
-#    masterNode = rootNode 
-#    llist = []
-#    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
-#    print 'Rebalance refinement', len(tree_list_of_nodes)
-#    
-#
-#    totalNumberOfNodes = tree.count_nodes(rootNode)
-#    newTotalNumberOfNodes = -1
-#     
-#    print totalNumberOfNodes
-#
-#
-#    while totalNumberOfNodes != newTotalNumberOfNodes:
-#         print 'k neighbor rule'
-#         totalNumberOfNodes = newTotalNumberOfNodes
-#         masterNode = rootNode
-#         k_neighbor_rule(tree, rootNode, masterNode)
-#         newTotalNumberOfNodes = tree.count_nodes(rootNode)
-#      
-#    print 'total number of element nodes', newTotalNumberOfNodes
-#    
-#    masterNode = rootNode
-#    
-#    llist = []
-#    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
-#    print 'K-neighbor rule', len(tree_list_of_nodes)
-#    
-#
-#    
-#    print "Applying the high stress concentration constraint"
-#    full_list = stress_concentration_constraint(tree_list_of_nodes, masterNode,outputImage)
-#    masterNode = rootNode
-#    divide_high_stress_elements(full_list,rootNode, tree_list_of_nodes)
-#    
-#    llist = []
-#    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
-#    print 'After high stress concentration constraint', len(tree_list_of_nodes)
-#    
-#    masterNode = rootNode
-#    totalNumberOfNodes = tree.count_nodes(rootNode)
-#    print totalNumberOfNodes
-#    newTotalNumberOfNodes = -1
-#    while totalNumberOfNodes != newTotalNumberOfNodes:
-#         print 'No enrichment nodes and hanging nodes in the same element '
-#         totalNumberOfNodes = newTotalNumberOfNodes
-#         masterNode = rootNode
-#         ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
-#         newTotalNumberOfNodes = tree.count_nodes(rootNode)
-#         
-#    masterNode = rootNode
-#    
-#
-#    totalNumberOfNodes = tree.count_nodes(rootNode)
-#    newTotalNumberOfNodes = -1
-#    print totalNumberOfNodes
-#         
-#    while totalNumberOfNodes != newTotalNumberOfNodes:
-#        print 'Rebalancing tree by multiple passes '
-#        masterNode = rootNode
-#        totalNumberOfNodes = newTotalNumberOfNodes
-#        tree_balance(tree,rootNode,masterNode)
-#        newTotalNumberOfNodes = tree.count_nodes(rootNode)
-# 
-#    
-#    masterNode = rootNode
-#    totalNumberOfNodes = tree.count_nodes(rootNode)
-#    newTotalNumberOfNodes = -1
-#     
-#
-#    while totalNumberOfNodes != newTotalNumberOfNodes:
-#         print 'k neighbor rule'
-#         totalNumberOfNodes = newTotalNumberOfNodes
-#         masterNode = rootNode
-#         k_neighbor_rule(tree, rootNode, masterNode)
-#         newTotalNumberOfNodes = tree.count_nodes(rootNode)
-#      
-#    print 'total number of element nodes', newTotalNumberOfNodes
-#    
-#    masterNode = rootNode
-#    
-#    totalNumberOfNodes = tree.count_nodes(rootNode)
-#    newTotalNumberOfNodes = -1
-#
-#    llist = []
-#    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
-#    
-#    print 'After all constraints were applied: ', len(tree_list_of_nodes)
+
+    # Constraints imposed on the mesh follow
+    # to deactivate them, comment out the while loop
+    # the commenting out should be started with the desired criterion and then
+    # all the other successive ones as those are dependent on previous ones 
+    
+    
+    print 'No enrichment nodes and hanging nodes in the same element '
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    print totalNumberOfNodes
+    newTotalNumberOfNodes = -1
+    while totalNumberOfNodes != newTotalNumberOfNodes:
+         
+         totalNumberOfNodes = newTotalNumberOfNodes
+         masterNode = rootNode
+         ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
+         newTotalNumberOfNodes = tree.count_nodes(rootNode)
+         
+    masterNode = rootNode
+    
+    llist = []
+    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
+    
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    newTotalNumberOfNodes = -1
+
+    print 'Rebalancing tree by multiple passes '         
+    while totalNumberOfNodes != newTotalNumberOfNodes:
+        masterNode = rootNode
+        totalNumberOfNodes = newTotalNumberOfNodes
+        tree_balance(tree,rootNode,masterNode)
+        newTotalNumberOfNodes = tree.count_nodes(rootNode)
+
+    masterNode = rootNode 
+    llist = []
+    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
+    
+
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    newTotalNumberOfNodes = -1
+     
+
+    print 'k neighbor rule'
+    while totalNumberOfNodes != newTotalNumberOfNodes:
+         totalNumberOfNodes = newTotalNumberOfNodes
+         masterNode = rootNode
+         k_neighbor_rule(tree, rootNode, masterNode)
+         newTotalNumberOfNodes = tree.count_nodes(rootNode)
+      
+    masterNode = rootNode
+    llist = []
+    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
+
+    
+    print "Applying the high stress concentration constraint"
+    full_list = stress_concentration_constraint(tree_list_of_nodes, masterNode,outputImage)
+    masterNode = rootNode
+    divide_high_stress_elements(full_list,rootNode, tree_list_of_nodes)
+    
+    llist = []
+    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
+    print 'After high stress concentration constraint', len(tree_list_of_nodes)
+
+    print 'No enrichment nodes and hanging nodes in the same element '    
+    masterNode = rootNode
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    newTotalNumberOfNodes = -1
+    while totalNumberOfNodes != newTotalNumberOfNodes:
+         totalNumberOfNodes = newTotalNumberOfNodes
+         masterNode = rootNode
+         ghost_nodes_enrichment_nodes(tree, rootNode, masterNode)
+         newTotalNumberOfNodes = tree.count_nodes(rootNode)
+         
+    masterNode = rootNode
+    
+
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    newTotalNumberOfNodes = -1
+         
+    print 'Rebalancing tree by multiple passes '
+    while totalNumberOfNodes != newTotalNumberOfNodes:
+        masterNode = rootNode
+        totalNumberOfNodes = newTotalNumberOfNodes
+        tree_balance(tree,rootNode,masterNode)
+        newTotalNumberOfNodes = tree.count_nodes(rootNode)
+ 
+    
+    masterNode = rootNode
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    newTotalNumberOfNodes = -1
+     
+    print 'k neighbor rule'
+    while totalNumberOfNodes != newTotalNumberOfNodes:
+         totalNumberOfNodes = newTotalNumberOfNodes
+         masterNode = rootNode
+         k_neighbor_rule(tree, rootNode, masterNode)
+         newTotalNumberOfNodes = tree.count_nodes(rootNode)
+      
+    
+    masterNode = rootNode
+    
+    totalNumberOfNodes = tree.count_nodes(rootNode)
+    newTotalNumberOfNodes = -1
+
+    llist = []
+    tree_list_of_nodes = get_list_of_nodes(tree,rootNode,masterNode,llist)
+    
     
     draw_interface(outputImage, inputImage, tree_list_of_nodes, masterNode)
     
     print 'writing the image out'
     nameOutputImage = "dataset/out_" + matName +"-" + tname +"-contrast_"+ str(len(tree_list_of_nodes))+".vtk" 
-    print nameOutputImage
     sitk.WriteImage(outputImage,nameOutputImage);
 
 
-#
-##
-
-#
-#    rt = get_node_by_id(rootNode,['0107'])
-#    rt2 = find_neighbor_of(rt.index,'F', masterNode)
-#    rt3 = find_neighbor_of(rt.index,'L', masterNode)
-#    print rt.index, rt2, rt3
-#    rt.printcube()
-#    
-#    
-#    rt = get_node_by_id(rootNode,['0103'])
-#    rt.printcube()
-#    rt2 = find_neighbor_of(rt.index,'F', masterNode)
-#    print 'rt2', rt2
-##    rt = get_node_by_id(rootNode,['301'])
-##    rt2 = find_neighbor_of(rt.index,'RU')
-##    print rt.index, rt2
-###
-##
-##    rt = get_node_by_id(rootNode,['301'])
-##    rt2 = find_neighbor_of(rt.index,'RUF')
-##    print rt.index, rt2   
