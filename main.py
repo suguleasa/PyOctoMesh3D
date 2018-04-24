@@ -5,10 +5,7 @@ import numpy
 import SimpleITK as sitk
 from libFcts import *
 from globalVars import *
-# import dicom
 import scipy
-#import external.transformations as tf
-  
 
 # NOTES:
 # system of coordinates is [0,imageSize], thus always positive values
@@ -33,7 +30,6 @@ class Node():
         self.children = [None, None, None, None,None,None,None,None]
         self.has_children = False
 
-#        self.maxdepth = 0
         if parent == None:
             self.depth = 0
             
@@ -44,8 +40,6 @@ class Node():
                 
         
         self.ishomog = 1
-#        self.tlist = [] # contains the numbering of the nodes in the element
-#        self.tpix = []       
         self.nsew = [0,0,0,0] # north, south, east, west
         
         # hanging nodes coordinates. 
@@ -277,7 +271,6 @@ class Node():
             span = self.division_criterionOnce(cubes[n], self.inImage, self.outImage)
 
             if span == True:
-#                print 'criterion is TRUE'
                 self.children[n] = self.getinstance(cubes[n], self.inImage, self.outImage,imageSize)
                 self.children[n].index = str(convert_to_base_8(tomorton(self.children[n].i, self.children[n].j, self.children[n].k)))
                 diff_level = abs(len(self.children[n].index) - self.children[n].depth)
@@ -751,20 +744,12 @@ class CNode(Node):
                         # planar least square approximation
                         [res,coeffs] = calc_plane_residual(x_list_c, y_list_c, z_list_c)
                         if res <= 0.001 and (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
-#                            draw_plane_connections(self.outImage, l1,l2,l3,l4, L1,L2,L3,L4) # 1234
-#                            draw_plane_connections(self.outImage, l1,l2,l6,l5, L1,L2,L6,L5) # 1265
-#                            draw_plane_connections(self.outImage, l3,l2,l6,l7, L3,L2,L6,L7) # 3267
-#                            draw_plane_connections(self.outImage, l4,l3,l7,l8, L4,L3,L7,L8) # 4378
-#                            draw_plane_connections(self.outImage, l4,l1,l5,l8, L4,L1,L5,L8) # 4158
-#                            draw_plane_connections(self.outImage, l5,l6,l7,l8, L5,L6,L7,L8) # 5678
                             vecCoord = []
                             for i in range(0,len(x_list_c)):
                                 # add points of intersection to a list of coordinates
                                 vecCoord = vecCoord + [Coordinate(x_list_c[i], y_list_c[i], z_list_c[i])]
                             self.enrichNodes = vecCoord 
                             self.ishomog = 0
-
-#                            return False  
                         
                         else: # residual criterion approximation of the interface is not met
                             if (abs(p1.x-p2.x) >= 2*MIN_SIZE_X and abs(p1.y-p4.y) >= 2*MIN_SIZE_Y and abs(p1.z - p5.z)>= 2*MIN_SIZE_Z):
@@ -1370,12 +1355,6 @@ def draw_interface(outImage, inImage, tree_list, masterNode):
                 
                 calc_internal_pts(x_list_c,y_list_c,z_list_c,root_i,GRID_PTS)
                 
-#                draw_nurbs_on_face(outImage, inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1, p2, p3, p4) # 1234
-#                draw_nurbs_on_face(outImage, inImage, l1,l2,l6,l5, L1,L10,L5,L9, p1, p2, p6, p5) # 1265
-#                draw_nurbs_on_face(outImage, inImage, l3,l2,l6,l7, L2,L10,L6,L11, p2, p3, p7, p6) # 3267
-#                draw_nurbs_on_face(outImage, inImage, l4,l3,l7,l8, L3,L11,L7,L12, p4, p3, p7, p8) # 4378
-#                draw_nurbs_on_face(outImage, inImage, l4,l1,l5,l8, L4,L9,L8,L12, p1, p4, p8, p5) # 4158
-#                draw_nurbs_on_face(outImage, inImage, l5,l6,l7,l8, L5,L6,L7,L8, p5, p6, p7, p8) # 5678
                 draw_nurbs_on_face(outImage, inImage, l1,l2,l3,l4, L1,L2,L3,L4, p1, p2, p3, p4) # 1234
                 draw_nurbs_on_face(outImage, inImage, l1,l10,l5,l9, L1,L10,L5,L9, p1, p2, p6, p5) # 1265
                 draw_nurbs_on_face(outImage, inImage, l2,l11,l6,l10, L2,L11,L6,L10, p2, p3, p7, p6) # 3267
